@@ -1,0 +1,8 @@
+(define (load-here path)
+  (load (merge-pathnames (directory-pathname (current-load-pathname))
+                         (->pathname path))))
+(load-here "collections.scm")
+(load-here "predicates.scm")
+(load-here "applicability.scm")
+(load-here "trie.scm")
+(load-here "generic-procedures.scm")
