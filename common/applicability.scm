@@ -51,9 +51,7 @@ along with SDF.  If not, see <https://www.gnu.org/licenses/>.
 
 (define (predicates-match? predicates args)
   (and (= (length predicates) (length args))
-       (every (lambda (predicate arg)
-                (increment-predicate-count! predicate)
-                (predicate arg))
+       (every (lambda (predicate arg) (predicate arg))
               predicates
               args)))
 

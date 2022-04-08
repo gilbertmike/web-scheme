@@ -229,6 +229,12 @@ along with SDF.  If not, see <https://www.gnu.org/licenses/>.
 (define simple-generic-procedure
   (generic-procedure-constructor make-simple-dispatch-store))
 
+(define (implementation-type-name object)
+  (microcode-type/code->name (object-type object)))
+
+(define microcode-type/code->name
+  (access microcode-type/code->name (->environment '(runtime))))
+
 ;;; API
 (define make-default-dispatch-store
   make-simple-dispatch-store)

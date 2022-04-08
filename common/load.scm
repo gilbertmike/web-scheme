@@ -4,5 +4,6 @@
 (load-here "collections.scm")
 (load-here "predicates.scm")
 (load-here "applicability.scm")
+(load-here "memoizers.scm")
 (load-here "trie.scm")
 (load-here "generic-procedures.scm")

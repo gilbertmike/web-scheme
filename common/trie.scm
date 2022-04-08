@@ -75,7 +75,6 @@ along with SDF.  If not, see <https://www.gnu.org/licenses/>.
         tries)))
 
 (define (apply-predicate predicate feature)
-  (increment-predicate-count! predicate)
   (predicate feature))
 
 (define (get-all-values trie features)
