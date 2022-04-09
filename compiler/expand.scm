@@ -17,17 +17,36 @@
 ;;; s for syntax.
 (define s:expand (simple-generic-procedure 's:expand 1 expand-default))
 
+(define (begin? exp) (special-form? exp 'begin))
+(define (begin-sequence exp) (cdr exp))
+
+(define (expand-begin exp)
+  `(begin ,@(map s:expand (begin-sequence exp))))
+
+(define-generic-procedure-handler s:expand
+  (match-args begin?)
+  expand-begin)
+
+(define (set!? exp) (special-form? exp 'set!))
+(define (set!-name exp) (cadr exp))
+(define (set!-value exp) (caddr exp))
+
+(define (expand-set! exp)
+  `(set! ,(set!-name exp) ,(s:expand (set!-value exp))))
+
+(define-generic-procedure-handler s:expand
+  (match-args set!?)
+  expand-set!)
+
 (define (define? exp) (special-form? exp 'define))
 (define (define-object exp) (cadr exp))
 (define (define-body exp) (cddr exp))
+(define (simple-define? exp)
+  (and (define? exp)
+       (symbol? (define-object exp))))
 (define (nested-define? exp)
   (and (define? exp)
        (not (symbol? (define-object exp)))))
-
-(define (expand-define exp)
-  (if (nested-define? exp)
-      (expand-nested-define exp)
-      (expand-simple-define exp)))
 
 (define (expand-simple-define exp)
   `(define ,(define-object exp)
@@ -42,7 +61,11 @@
       (s:expand expanded))))
 
 (define-generic-procedure-handler s:expand
-  (match-args define?)
+  (match-args simple-define?)
+  expand-simple-define)
+
+(define-generic-procedure-handler s:expand
+  (match-args nested-define?)
   expand-nested-define)
 
 (define (if? exp) (special-form? exp 'if))
@@ -139,3 +162,62 @@
 (define-generic-procedure-handler s:expand
   (match-args simple-let?)
   expand-simple-let)
+
+(define (let*? exp) (special-form? exp 'let*))
+(define (let*-bindings exp) (cadr exp))
+(define (let*-body exp) (cddr exp))
+
+(define (expand-let* exp)
+  (let ((bindings (let*-bindings exp))
+        (body (let*-body exp)))
+    (let ((first-binding (car bindings)))
+      (let ((result
+             (if (null? (cdr bindings))
+                 `(let ,bindings ,@body)
+                 `(let (,first-binding)
+                    (let* ,(cdr bindings) ,@body)))))
+        (s:expand result)))))
+
+(define-generic-procedure-handler s:expand
+  (match-args let*?)
+  expand-let*)
+
+(define (letrec? exp) (special-form? exp 'letrec))
+(define (letrec-bindings exp) (cadr exp))
+(define (letrec-body exp) (cddr exp))
+
+(define (expand-letrec exp)
+  (let ((bindings (letrec-bindings exp)))
+    (let ((result
+           `(let ,(map (lambda (binding)
+                         `(,(let-binding-name binding) #f))
+                       bindings)
+              ,@(map (lambda (binding)
+                       `(set! ,(let-binding-name binding)
+                              ,(let-binding-value binding)))
+                     bindings)
+              ,@(letrec-body exp))))
+      (s:expand result))))
+
+(define-generic-procedure-handler s:expand
+  (match-args letrec?)
+  expand-letrec)
+
+(define (quote? exp) (special-form? exp 'quote))
+(define (quote-datum exp) (cadr exp))
+
+(define (expand-quote exp) exp)
+
+(define-generic-procedure-handler s:expand
+  (match-args quote?)
+  expand-quote)
+
+(define (quasiquote? exp) (special-form? exp 'quasiquote))
+(define (quasiquote-datum exp) (cadr exp))
+
+;;; TODO: this is just a placeholder. Expansion of quasiquote is very untrivial.
+(define (expand-quasiquote exp) exp)
+
+(define-generic-procedure-handler s:expand
+  (match-args quasiquote?)
+  expand-quasiquote)
