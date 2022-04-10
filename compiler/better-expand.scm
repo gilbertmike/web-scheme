@@ -283,7 +283,7 @@
 
 ;;; Push down marks in a syntactic object by one level and make the outer most
 ;;; level a list, so it can be used in conjunction with ,@ in quasiquotes.
-(define (s:pushdown x)
+(define (s:push-down x)
   (s:map (lambda (y) y) x))
 
 (define (s:expand-unnamed-let x env menv)
@@ -294,7 +294,7 @@
       `(,(s:expand
           (s:datum->syntax
            `(,(s:core 'lambda)
-             ,vars ,@(s:pushdown body)))
+             ,vars ,@(s:push-down body)))
           env menv)
         ,@(s:expand-exprs exprs env menv)))))
 
@@ -306,7 +306,7 @@
           (init-vals (s:map s:cadr params)))
       (let ((proc (s:datum->syntax
                    `(,(s:core 'lambda)
-                     ,params ,@(s:pushdown body)))))
+                     ,params ,@(s:push-down body)))))
         (s:expand
          (s:datum->syntax
           `(,(s:core 'letrec)
@@ -328,7 +328,7 @@
                    `(,(s:core 'let)
                      ,init-void
                      ,@set-exprs
-                     ,@(s:pushdown body)))
+                     ,@(s:push-down body)))
                   env menv)))))
 
 (define (s:unnest-define x)
@@ -341,7 +341,7 @@
           `(,(s:car x) ,(s:car object) ; (s:car x) is define -- reuse that.
             (,(s:core 'lambda)
              ,(s:cdr object)
-             ,@(s:pushdown body))))))))
+             ,@(s:push-down body))))))))
 
 ;;; Should only be called in the global environment.
 (define (s:expand-define x env menv)
@@ -353,32 +353,83 @@
        (let ((binding (s:id-binding x env)))
          (eq? (binding-type binding) 'core-aux))))
 
+;;; TODO: support =>
 (define (s:expand-cond x env menv)
-  (let ((clauses (s:cadr x)))
+  (let ((clauses (s:cdr x)))
     (if (s:null? clauses)
         `#!unspecific
         (let ((first (s:car clauses)))
           (let ((first-predicate (s:car first))
-                (first-consequence (s:cadr first)))
+                (first-consequence
+                 ;; Ensure the consequence is a single expression.
+                 `(,(s:core 'begin)
+                   ,@(s:push-down (s:cdr first)))))
             (if (s:else? first-predicate env)
-                (s:expand first-consequence env menv)
+                (s:expand (s:datum->syntax first-consequence) env menv)
                 (s:expand
                  (s:datum->syntax
                   `(,(s:core 'if) ,first-predicate
                     ,first-consequence
-                    (,(s:core 'cond) ,(s:cdr clauses))))
+                    (,(s:core 'cond) ,@(s:push-down (s:cdr clauses)))))
                  env menv)))))))
 
-#|
-(pp (syntactic-expand
-     '(cond ((a b)
-             (else d)))))
+(define-record-type <qq-atom>
+  (%make-qq-atom single expr)
+  qq-atom?
+  (single %qq-atom-single)
+  (expr %qq-atom-expr))
 
-(pp (syntactic-expand
-     '(let ((else #f))
-        (cond ((a b)
-               (else d))))))
-|#
+(define (s:qq-single x) (%make-qq-atom #t x))
+(define (s:qq-splice x) (%make-qq-atom #f x))
+(define (s:qq-expr x) (%qq-atom-expr x))
+(define (s:qq-single? x) (%qq-atom-single x))
+
+(define (s:expand-qq-list x d env menv)
+  (let ((elems (s:map (lambda (y)
+                        (s:expand-qq y d env menv))
+                      x)))
+    (if (and (list? elems)
+             (every s:qq-single? elems))
+        `(%list ,@(map s:qq-expr elems))
+        (let ((append-args
+               (let loop ((rest elems))
+                 (cond ((null? rest) '())
+                       ((pair? rest)
+                        (cons (if (s:qq-single? (car rest))
+                                  `(%list ,(s:qq-expr (car rest)))
+                                  (s:qq-expr (car rest)))
+                              (loop (cdr rest))))
+                       (else (if (s:qq-single? rest)
+                                 (list (s:qq-expr rest))
+                                 (s:error (s:qq-expr rest)
+                                          "inappropriate use of ,@")))))))
+          `(%append ,@append-args)))))
+
+(define (s:expand-qq x d env menv)
+  (cond ((s:pair? x)
+         (let ((first (syntax-object-expr (s:car x))))
+           (cond ((enriched-symbol-base=? 'quasiquote first)
+                  (s:qq-single (s:expand-qq-list x (+ d 1) env menv)))
+                 ((enriched-symbol-base=? 'unquote first)
+                  (if (= d 0)
+                      (s:qq-single (s:expand (s:cadr x) env menv))
+                      (s:qq-single (s:expand-qq-list x (- d 1) env menv))))
+                 ((enriched-symbol-base=? 'unquote-splicing first)
+                  (if (= d 0)
+                      (s:qq-splice (s:expand (s:cadr x) env menv))
+                      (s:qq-single (s:expand-qq-list x (- d 1) env menv))))
+                 (else
+                  (s:qq-single (s:expand-qq-list x d env menv))))))
+        ((s:identifier? x)
+         (s:qq-single `(quote ,(s:strip x))))
+        (else
+         (s:qq-single (s:strip x)))))
+
+(define (s:expand-quasiquote x env menv)
+  (let ((atom (s:expand-qq (s:cadr x) 0 env menv)))
+    (if (s:qq-single? atom)
+        (s:qq-expr atom)
+        (s:error (s:qq-expr atom) "inappropriate use of ,@"))))
 
 (define (s:expand-begin x env menv)
   `(begin ,@(s:expand-exprs (s:cdr x) env menv)))
@@ -401,6 +452,7 @@
 
 (let ((bindings
        `((quote . ,(make-binding 'core s:expand-quote))
+         (quasiquote . ,(make-binding 'core s:expand-quasiquote))
          (if . ,(make-binding 'core s:expand-if))
          (let . ,(make-binding 'core s:expand-let))
          (letrec . ,(make-binding 'core s:expand-letrec))

@@ -38,15 +38,7 @@
   (eq? (enriched-symbol-base a)
        (enriched-symbol-base b)))
 
-(define enriched-symbol-show-as-symbol #t)
-
 ;; Protects our eyes.
-(let ((standard-printer
-       (standard-print-method enriched-symbol-base)))
-  (define-print-method
-    enriched-symbol?
-    (lambda (esym port)
-      (if enriched-symbol-show-as-symbol
-          (display (enriched-symbol-base esym) port)
-          (standard-printer esym port)))))
-
+(define-print-method
+  enriched-symbol?
+  (standard-print-method enriched-symbol-base))
