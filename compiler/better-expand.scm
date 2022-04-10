@@ -107,10 +107,17 @@
   (error message culprit))
 
 (define (s:id-binding id env)
-  (let ((label (s:id-label id)))
-    (if label
-        (s:label-binding id label env)
-        (make-binding 'global (syntax-object-expr id)))))
+  (let ((forced-binding
+         (and (enriched-symbol? (syntax-object-expr id))
+              (enriched-symbol-metadata-ref
+               (syntax-object-expr id)
+               'forced-binding))))
+    (if forced-binding
+        forced-binding
+        (let ((label (s:id-label id)))
+          (if label
+              (s:label-binding id label env)
+              (make-binding 'global (syntax-object-expr id)))))))
 
 (define (s:id-label id)
   (let ((sym (syntax-object-expr id))
@@ -170,6 +177,10 @@
   (s:extend-wrap (syntax-object-wrap x)
                  (cdr (syntax-object-expr x))))
 
+(define (s:cadr x) (s:car (s:cdr x)))
+
+(define (s:cddr x) (s:cdr (s:cdr x)))
+
 (define (s:null? x)
   (null? (syntax-object-expr x)))
 
@@ -191,11 +202,14 @@
   (match-args s:identifier-application? s:environment? s:environment?)
   s:expand-identifier-application)
 
+;; Also works for improper lists.
+(define (s:map f x)
+  (cond ((s:null? x) '())
+        ((s:pair? x) (cons (f (s:car x)) (s:map f (s:cdr x))))
+        (else (f x))))
+
 (define (s:expand-exprs xs env menv)
-  (if (s:null? xs)
-      '()
-      (cons (s:expand (s:car xs) env menv)
-            (s:expand-exprs (s:cdr xs) env menv))))
+  ((if (syntax-object? xs) s:map map) (lambda (x) (s:expand x env menv)) xs))
 
 (define (s:compound-application? x)
   (and (s:pair? x)
@@ -216,29 +230,22 @@
   (expander x env menv))
 
 (define (s:expand-quote x env menv)
-  `(quote ,(s:strip (s:car (s:cdr x)))))
+  `(quote ,(s:strip (s:cadr x))))
 
 (define (s:expand-if x env menv)
   ;; TODO: check length of (s:cdr x).
   `(if ,@(s:expand-exprs (s:cdr x) env menv)))
 
-;; Also works for improper lists.
-(define (s:map->list f x)
-  (cond ((s:null? x) '())
-        ((s:pair? x) (cons (f (s:car x)) (s:map->list f (s:cdr x))))
-        (else (f x))))
-
 (define (s:expand-lambda x env menv)
-  (let ((params (s:car (s:cdr x)))
-        (bodies (s:cdr (s:cdr x))))
+  (let ((params (s:cadr x))
+        (bodies (s:cddr x)))
     (let ((names
-           (s:map->list
+           (s:map
             (lambda (param)
               (let ((label (make-label))
-                    (name
-                     (make-enriched-symbol
-                      (generate-variable-name (s:strip param))
-                      (list (cons 'original param)))))
+                    (name (make-enriched-symbol
+                           (generate-variable-name (s:strip param))
+                           (list (cons 'original param)))))
                 (set! bodies (s:add-subst param label bodies))
                 (set! env (s:extend-env label
                                         (make-binding 'lexical name)
@@ -247,12 +254,182 @@
             params)))
       `(lambda ,names
          ;; TODO: internal defines... a pain in the ass.
+         ;; The problem is to recognize the bindings created by these defines,
+         ;; and add them env.
          ,@(s:expand-exprs bodies env menv)))))
 
+(define (s:expand-let x env menv)
+  (if (s:identifier? (s:cadr x))
+      (s:expand-named-let x env menv)
+      (s:expand-unnamed-let x env menv)))
+
+;;; Enforces a binding.
+(define (s:force-bind id expander)
+  (enriched-symbol-augment
+   id
+   (list (cons 'forced-binding (make-binding 'core expander)))))
+
+;;; E.g. (s:core 'lambda) creates an identifier that unambiguously refers to
+;;; the core lambda special form.
+(define (s:core sym)
+  (make-syntax-object sym s:initial-wrap))
+
+;;; Sometimes we want to construct some syntactic form with quasiquoting and
+;;; pass it to a specific core expander. However the expander only accepts
+;;; syntax objects. This convenient function wraps a list into a syntax object
+;;; with no wraps at all.
+(define (s:datum->syntax x)
+  (make-syntax-object x '()))
+
+;;; Push down marks in a syntactic object by one level and make the outer most
+;;; level a list, so it can be used in conjunction with ,@ in quasiquotes.
+(define (s:pushdown x)
+  (s:map (lambda (y) y) x))
+
+(define (s:expand-unnamed-let x env menv)
+  (let ((bindings (s:cadr x))
+        (body (s:cddr x)))
+    (let ((vars (s:map s:car bindings))
+          (exprs (s:map s:cadr bindings)))
+      `(,(s:expand
+          (s:datum->syntax
+           `(,(s:core 'lambda)
+             ,vars ,@(s:pushdown body)))
+          env menv)
+        ,@(s:expand-exprs exprs env menv)))))
+
+(define (s:expand-named-let x env menv)
+  (let ((name (s:cadr x))
+        (params (s:car (s:cddr x)))
+        (body (s:cdr (s:cddr x))))
+    (let ((params (s:map s:car params))
+          (init-vals (s:map s:cadr params)))
+      (let ((proc (s:datum->syntax
+                   `(,(s:core 'lambda)
+                     ,params ,@(s:pushdown body)))))
+        (s:expand
+         (s:datum->syntax
+          `(,(s:core 'letrec)
+            ((,name ,proc))
+            (,name ,@init-vals)))
+         env menv)))))
+
+(define (s:expand-letrec x env menv)
+  (let ((bindings (s:cadr x))
+        (body (s:cddr x)))
+    (let ((vars (s:map s:car bindings))
+          (exprs (s:map s:cadr bindings)))
+      (let ((init-void (map (lambda (var) `(,var #f)) vars))
+            (set-exprs (map (lambda (var expr)
+                              (list (s:core 'set!)
+                                    var expr))
+                            vars exprs)))
+        (s:expand (s:datum->syntax
+                   `(,(s:core 'let)
+                     ,init-void
+                     ,@set-exprs
+                     ,@(s:pushdown body)))
+                  env menv)))))
+
+(define (s:unnest-define x)
+  (let ((object (s:cadr x))
+        (body (s:cddr x)))
+    (if (s:identifier? object)
+        x
+        (s:unnest-define
+         (s:datum->syntax
+          `(,(s:car x) ,(s:car object) ; (s:car x) is define -- reuse that.
+            (,(s:core 'lambda)
+             ,(s:cdr object)
+             ,@(s:pushdown body))))))))
+
+;;; Should only be called in the global environment.
+(define (s:expand-define x env menv)
+  (let ((x (s:unnest-define x)))
+    `(define ,@(s:expand-exprs (s:cdr x) env menv))))
+
+(define (s:else? x env)
+  (and (s:identifier? x)
+       (let ((binding (s:id-binding x env)))
+         (eq? (binding-type binding) 'core-aux))))
+
+(define (s:expand-cond x env menv)
+  (let ((clauses (s:cadr x)))
+    (if (s:null? clauses)
+        `#!unspecific
+        (let ((first (s:car clauses)))
+          (let ((first-predicate (s:car first))
+                (first-consequence (s:cadr first)))
+            (if (s:else? first-predicate env)
+                (s:expand first-consequence env menv)
+                (s:expand
+                 (s:datum->syntax
+                  `(,(s:core 'if) ,first-predicate
+                    ,first-consequence
+                    (,(s:core 'cond) ,(s:cdr clauses))))
+                 env menv)))))))
+
+#|
+(pp (syntactic-expand
+     '(cond ((a b)
+             (else d)))))
+
+(pp (syntactic-expand
+     '(let ((else #f))
+        (cond ((a b)
+               (else d))))))
+|#
+
+(define (s:expand-begin x env menv)
+  `(begin ,@(s:expand-exprs (s:cdr x) env menv)))
+
+(define (s:expand-set! x env menv)
+  (let ((dest (s:cadr x))
+        (expr (s:car (s:cddr x))))
+    (if (s:identifier? dest)
+        (let ((binding (s:id-binding dest env)))
+          (case (binding-type binding)
+            ((lexical global)
+             `(set! ,(s:refer-to dest binding)
+                    ,(s:expand expr env menv)))
+            (else
+             (s:error dest "can only set lexical/globally bound variables"))))
+        (s:error dest "can only set! identifier"))))
+
+(define s:initial-wrap)
+(define s:initial-env)
+
+(let ((bindings
+       `((quote . ,(make-binding 'core s:expand-quote))
+         (if . ,(make-binding 'core s:expand-if))
+         (let . ,(make-binding 'core s:expand-let))
+         (letrec . ,(make-binding 'core s:expand-letrec))
+         (letrec* . ,(make-binding 'core s:expand-letrec))
+         (define . ,(make-binding 'core s:expand-define))
+         (set! . ,(make-binding 'core s:expand-set!))
+         (else . ,(make-binding 'core-aux 'else))
+         (begin . ,(make-binding 'core s:expand-begin))
+         (lambda . ,(make-binding 'core s:expand-lambda))
+         (cond . ,(make-binding 'core s:expand-cond)))))
+  (let ((labels (map (lambda (x) (make-label)) bindings)))
+    (set! s:initial-wrap
+          `(,@(map (lambda (sym label)
+                     (make-subst sym (list %the-top-mark) label))
+                   (map car bindings)
+                   labels)
+            ,%the-top-mark))
+    (set! s:initial-env
+          (map cons labels (map cdr bindings)))))
+
+#|
 (define (s:initial-wrap-and-env)
   (let ((bindings
          `((quote . ,(make-binding 'core s:expand-quote))
            (if . ,(make-binding 'core s:expand-if))
+           (let . ,(make-binding 'core s:expand-let))
+           (letrec . ,(make-binding 'core s:expand-letrec))
+           (set! . ,(make-binding 'core s:expand-set!))
+           (begin . ,(make-binding 'core s:expand-begin))
            (lambda . ,(make-binding 'core s:expand-lambda)))))
     (let ((labels (map (lambda (x) (make-label)) bindings)))
       (cons
@@ -262,21 +439,9 @@
                 labels)
          ,%the-top-mark)
        (map cons labels (map cdr bindings))))))
+|#
 
 (define (syntactic-expand x)
-  (let ((wrap-env (s:initial-wrap-and-env)))
-    (s:expand (make-syntax-object x (car wrap-env))
-              (cdr wrap-env)
-              (cdr wrap-env))))
-
-(pp
- (syntactic-expand
-  '((lambda (x z)
-      (display x y)
-      (if x
-          x
-          z)
-      '(lambda (lambda)
-        (lambda x x)
-        1))
-    x)))
+  (s:expand (make-syntax-object x s:initial-wrap)
+            s:initial-env
+            s:initial-env))
