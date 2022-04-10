@@ -1,8 +1,5 @@
 ;;;; Expands complex specials forms into simpler special forms.
 
-;; TODO: replace with something machine-independent
-(load "~/web-scheme/common/load.scm")
-
 (define (special-form-name exp) (car exp))
 
 (define (special-form? exp tag)
