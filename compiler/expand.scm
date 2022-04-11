@@ -1,220 +1,526 @@
-;;;; Expands complex specials forms into simpler special forms.
+;;;; A hygenic and extensible expander.
+;;;; Reference: "Syntactic Abstraction: The syntax-case expander", by K. Dybvig.
+;;;;
+;;;; Deviations from the paper:
+;;;; * functions are prefixed with s: (s for syntax!)
+;;;; * unlabeled identifiers are considered global bindings instead of an error
+;;;; * support n-ary lambda parameters and multi-statement-bodies
+;;;; * reference information maintained as metadata of enriched symbols.
 
-(define (special-form-name exp) (car exp))
+;;;; Data structures.
 
-(define (special-form? exp tag)
-  (and (pair? exp)
-       (eq? (special-form-name exp) tag)))
+(define-record-type <syntax-object>
+  (make-syntax-object expr wrap)
+  syntax-object?
+  (expr syntax-object-expr)
+  (wrap syntax-object-wrap))
 
-(define (expand-default exp)
-  (if (pair? exp) ; Probably application.
-      (map s:expand exp)
-      exp))
+(define-record-type <mark> (make-mark) mark?)
 
-;;; s for syntax.
-(define s:expand (simple-generic-procedure 's:expand 1 expand-default))
+(define-record-type <label> (make-label) label?)
 
-(define (begin? exp) (special-form? exp 'begin))
-(define (begin-sequence exp) (cdr exp))
+(define-record-type <subst>
+  (make-subst sym marks label)
+  subst?
+  (sym subst-sym)
+  (marks subst-marks)
+  (label subst-label))
 
-(define (expand-begin exp)
-  `(begin ,@(map s:expand (begin-sequence exp))))
+(define-record-type <binding>
+  (make-binding type value)
+  binding?
+  (type binding-type)
+  (value binding-value))
+
+
+;;;; Utilities.
+
+(define (generate-variable-name prefix)
+  (generate-uninterned-symbol prefix))
+
+(define %the-top-mark (make-mark))
+
+(define (s:top-marked? wrap)
+  (any (lambda (x) (eq? x %the-top-mark)) wrap))
+
+(define (s:strip x)
+  (cond ((syntax-object? x)
+         (if (s:top-marked? (syntax-object-wrap x))
+             (syntax-object-expr x)
+             (s:strip (syntax-object-expr x))))
+        ((pair? x)
+         (let ((car-stripped (s:strip (car x)))
+               (cdr-stripped (s:strip (cdr x))))
+           (if (and (eq? car-stripped (car x))
+                    (eq? cdr-stripped (cdr x)))
+               x       ; Return the original x to avoid unnecessary allocations.
+               (cons car-stripped cdr-stripped))))
+        (else x)))
+
+(define (s:identifier? x)
+  (and (syntax-object? x)
+       (or (symbol? (syntax-object-expr x))
+           (enriched-symbol? (syntax-object-expr x)))))
+
+(define (s:self-evaluating? x)
+  (or (number? x) (string? x) (char? x) (boolean? x)))
+
+
+;;;; Marks-related functions.
+
+(define (s:wrap-marks wrap)
+  (filter mark? wrap))
+
+(define (s:add-mark mark x)
+  (s:extend-wrap (list mark) x))
+
+(define (s:add-subst id label x)
+  (s:extend-wrap
+   (list (make-subst
+          (syntax-object-expr id)
+          (s:wrap-marks (syntax-object-wrap id))
+          label))
+   x))
+
+(define (s:extend-wrap wrap x)
+  (if (syntax-object? x)
+      (make-syntax-object
+       (syntax-object-expr x)
+       (s:join-wraps wrap (syntax-object-wrap x)))
+      (make-syntax-object x wrap)))
+
+;; Apply wrap1 over wrap2
+(define (s:join-wraps wrap1 wrap2)
+  (cond ((null? wrap1) wrap2)
+        ((null? wrap2) wrap1)
+        (else
+         (let loop ((first (car wrap1)) (rest (cdr wrap1)))
+           (if (null? rest)
+               (if (and (mark? first) (eq? (car wrap2) first))
+                   (cdr wrap2) ;; Like marks cancel.
+                   (cons first wrap2))
+               (cons first (loop (car rest) (cdr rest))))))))
+
+(define (s:same-marks? marks1 marks2)
+  (list= eq? marks1 marks2))
+
+
+;;;; Compile-time environments.
+
+(define (s:environment? env)
+  ;; More strictly speaking -- should be an association list.
+  (pair? env))
+
+(define (s:extend-env label binding env)
+  (cons (cons label binding) env))
+
+(define (s:error culprit message)
+  (error message culprit))
+
+(define (s:id-binding id env)
+  (let ((forced-binding
+         (and (enriched-symbol? (syntax-object-expr id))
+              (enriched-symbol-metadata-ref
+               (syntax-object-expr id)
+               'forced-binding))))
+    (if forced-binding
+        forced-binding
+        (let ((label (s:id-label id)))
+          (if label
+              (s:label-binding id label env)
+              (make-binding 'global (syntax-object-expr id)))))))
+
+(define (s:id-label id)
+  (let ((sym (syntax-object-expr id))
+        (wrap (syntax-object-wrap id)))
+    (let search ((wrap wrap) (marks (s:wrap-marks wrap)))
+      (if (null? wrap)
+          #f
+          (let ((first (car wrap)))
+            (if (mark? first)
+                (search (cdr wrap) (cdr marks))
+                (if (and (enriched-symbol-base=? (subst-sym first) sym)
+                         (s:same-marks? (subst-marks first) marks))
+                    (subst-label first)
+                    (search (cdr wrap) marks))))))))
+
+(define (s:label-binding id label env)
+  (let ((result (assq label env)))
+    (if result
+        (cdr result)
+        (s:error id "identifier introduced is invisible in output context"))))
+
+
+;;;; Expansion utilities.
+
+(define s:expand
+  (simple-generic-procedure
+   's:expand 3
+   (lambda (x env menv)
+     (let ((stripped (s:strip x)))
+       (if (s:self-evaluating? stripped)
+           stripped
+           (s:error x "invalid syntax"))))))
+
+(define (s:refer-to x binding)
+  (let ((value (binding-value binding)))
+    (make-enriched-symbol
+     (enriched-symbol-base value)
+     (list (cons 'original (syntax-object-expr x))
+           (cons 'reference value)))))
+
+(define (s:expand-identifier x env menv)
+  (let ((binding (s:id-binding x env)))
+    (case (binding-type binding)
+      ((lexical global) (s:refer-to x binding))
+      (else (s:error x "invalid syntax")))))
 
 (define-generic-procedure-handler s:expand
-  (match-args begin?)
-  expand-begin)
+  (match-args s:identifier? s:environment? s:environment?)
+  s:expand-identifier)
 
-(define (set!? exp) (special-form? exp 'set!))
-(define (set!-name exp) (cadr exp))
-(define (set!-value exp) (caddr exp))
+
+;;;; Syntax object-based analogs to common list functions.
 
-(define (expand-set! exp)
-  `(set! ,(set!-name exp) ,(s:expand (set!-value exp))))
+(define (s:pair? x)
+  (and (syntax-object? x)
+       (pair? (syntax-object-expr x))))
 
-(define-generic-procedure-handler s:expand
-  (match-args set!?)
-  expand-set!)
+(define (s:car x)
+  (s:extend-wrap (syntax-object-wrap x)
+                 (car (syntax-object-expr x))))
 
-(define (define? exp) (special-form? exp 'define))
-(define (define-object exp) (cadr exp))
-(define (define-body exp) (cddr exp))
-(define (simple-define? exp)
-  (and (define? exp)
-       (symbol? (define-object exp))))
-(define (nested-define? exp)
-  (and (define? exp)
-       (not (symbol? (define-object exp)))))
+(define (s:cdr x)
+  (s:extend-wrap (syntax-object-wrap x)
+                 (cdr (syntax-object-expr x))))
 
-(define (expand-simple-define exp)
-  `(define ,(define-object exp)
-     ,@(map s:expand (define-body exp))))
+(define (s:cadr x) (s:car (s:cdr x)))
 
-(define (expand-nested-define exp)
-  (let ((actual-object (car (define-object exp)))
-        (parameters (cdr (define-object exp))))
-    (let ((expanded `(define ,actual-object
-                       (lambda ,parameters
-                         ,@(define-body exp)))))
-      (s:expand expanded))))
+(define (s:cddr x) (s:cdr (s:cdr x)))
 
-(define-generic-procedure-handler s:expand
-  (match-args simple-define?)
-  expand-simple-define)
+(define (s:null? x)
+  (null? (syntax-object-expr x)))
 
-(define-generic-procedure-handler s:expand
-  (match-args nested-define?)
-  expand-nested-define)
+;; Also works for improper lists.
+(define (s:map f x)
+  (cond ((s:null? x) '())
+        ((s:pair? x) (cons (f (s:car x)) (s:map f (s:cdr x))))
+        (else (f x))))
 
-(define (if? exp) (special-form? exp 'if))
-(define (if-predicate exp) (cadr exp))
-(define (if-consequence exp) (caddr exp))
-(define (if-alternative exp) (cadddr exp))
+
+;;;; Expanding application.
 
-(define (expand-if exp)
-  `(if ,(s:expand (if-predicate exp))
-       ,(s:expand (if-consequence exp))
-       ,(s:expand (if-alternative exp))))
+(define (s:identifier-application? x)
+  (and (s:pair? x)
+       (s:identifier? (s:car x))))
+
+(define (s:expand-identifier-application x env menv)
+  (let ((binding (s:id-binding (s:car x) env)))
+    (case (binding-type binding)
+      ((macro) (s:expand (s:expand-macro (binding-value) x) env menv))
+      ((lexical global)
+       (cons (s:refer-to (s:car x) binding)
+             (s:expand-exprs (s:cdr x) env menv)))
+      ((core) (s:expand-core (binding-value binding) x env menv))
+      (else (s:error x "invalid syntax")))))
 
 (define-generic-procedure-handler s:expand
-  (match-args if?)
-  expand-if)
+  (match-args s:identifier-application? s:environment? s:environment?)
+  s:expand-identifier-application)
 
-(define (cond? exp) (special-form? exp 'cond))
-(define (cond-branches exp) (cdr exp))
-(define (cond-branch-predicate exp) (car exp))
-(define (cond-branch-consequence exp) (cadr exp))
+(define (s:expand-exprs xs env menv)
+  ((if (syntax-object? xs) s:map map) (lambda (x) (s:expand x env menv)) xs))
 
-(define (expand-cond exp)
-  (let ((branches (cond-branches exp)))
-    (if (pair? branches)
-        (let ((first-branch (car branches)))
-          (let ((first-predicate (cond-branch-predicate first-branch))
-                (first-consequence (cond-branch-consequence first-branch)))
-            (if (eq? first-predicate 'else)
-                (s:expand first-consequence)
+(define (s:compound-application? x)
+  (and (s:pair? x)
+       (not (s:identifier? (s:car x)))))
+
+(define (s:expand-compound-application x env menv)
+  (s:expand-exprs x env menv))
+
+(define-generic-procedure-handler s:expand
+  (match-args s:compound-application? s:environment? s:environment?)
+  s:expand-compound-application)
+
+
+;;;; Core form expanders.
+
+;;; Right now we don't have a way to define macro expanders yet, but we keep the
+;;; interface for the time being.
+(define (s:expand-macro expander x)
+  (let ((m (make-mark)))
+    (s:add-mark m (expander (s:add-mark m x)))))
+
+(define (s:expand-core expander x env menv)
+  (expander x env menv))
+
+(define (s:expand-quote x env menv)
+  `(quote ,(s:strip (s:cadr x))))
+
+(define (s:expand-if x env menv)
+  ;; TODO: check length of (s:cdr x).
+  `(if ,@(s:expand-exprs (s:cdr x) env menv)))
+
+(define (s:expand-lambda x env menv)
+  (let ((params (s:cadr x))
+        (bodies (s:cddr x)))
+    (let ((names
+           (s:map
+            (lambda (param)
+              (let ((label (make-label))
+                    (name (make-enriched-symbol
+                           (generate-variable-name (s:strip param))
+                           (list (cons 'original param)))))
+                (set! bodies (s:add-subst param label bodies))
+                (set! env (s:extend-env label
+                                        (make-binding 'lexical name)
+                                        env))
+                name))
+            params)))
+      `(lambda ,names
+         ;; TODO: internal defines... a pain in the ass.
+         ;; The problem is to recognize the bindings created by these defines,
+         ;; and add them to env.
+         ,@(s:expand-exprs bodies env menv)))))
+
+
+;;;; More expansion utilities.
+
+;;; Enforces a binding.
+(define (s:force-bind id expander)
+  (enriched-symbol-augment
+   id
+   (list (cons 'forced-binding (make-binding 'core expander)))))
+
+;;; E.g. (s:core 'lambda) creates an identifier that unambiguously refers to
+;;; the core lambda special form.
+(define (s:core sym)
+  (make-syntax-object sym s:initial-wrap))
+
+;;; Sometimes we want to construct some syntactic form with quasiquoting and
+;;; pass it to a specific core expander. However the expander only accepts
+;;; syntax objects. This convenient function wraps a list into a syntax object
+;;; with no wraps at all.
+(define (s:datum->syntax x)
+  (make-syntax-object x '()))
+
+;;; Push down marks in a syntactic object by one level and make the outer most
+;;; level a list, so it can be used in conjunction with ,@ in quasiquotes.
+(define (s:push-down x)
+  (s:map (lambda (y) y) x))
+
+
+;;;; Expanding all flavors of let.
+
+(define (s:expand-let x env menv)
+  (if (s:identifier? (s:cadr x))
+      (s:expand-named-let x env menv)
+      (s:expand-unnamed-let x env menv)))
+
+(define (s:expand-unnamed-let x env menv)
+  (let ((bindings (s:cadr x))
+        (body (s:cddr x)))
+    (let ((vars (s:map s:car bindings))
+          (exprs (s:map s:cadr bindings)))
+      `(,(s:expand
+          (s:datum->syntax
+           `(,(s:core 'lambda)
+             ,vars ,@(s:push-down body)))
+          env menv)
+        ,@(s:expand-exprs exprs env menv)))))
+
+(define (s:expand-named-let x env menv)
+  (let ((name (s:cadr x))
+        (params (s:car (s:cddr x)))
+        (body (s:cdr (s:cddr x))))
+    (let ((params (s:map s:car params))
+          (init-vals (s:map s:cadr params)))
+      (let ((proc (s:datum->syntax
+                   `(,(s:core 'lambda)
+                     ,params ,@(s:push-down body)))))
+        (s:expand
+         (s:datum->syntax
+          `(,(s:core 'letrec)
+            ((,name ,proc))
+            (,name ,@init-vals)))
+         env menv)))))
+
+(define (s:expand-letrec x env menv)
+  (let ((bindings (s:cadr x))
+        (body (s:cddr x)))
+    (let ((vars (s:map s:car bindings))
+          (exprs (s:map s:cadr bindings)))
+      (let ((init-void (map (lambda (var) `(,var #f)) vars))
+            (set-exprs (map (lambda (var expr)
+                              (list (s:core 'set!)
+                                    var expr))
+                            vars exprs)))
+        (s:expand (s:datum->syntax
+                   `(,(s:core 'let)
+                     ,init-void
+                     ,@set-exprs
+                     ,@(s:push-down body)))
+                  env menv)))))
+
+
+;;;; Expanding define.
+
+(define (s:unnest-define x)
+  (let ((object (s:cadr x))
+        (body (s:cddr x)))
+    (if (s:identifier? object)
+        x
+        (s:unnest-define
+         (s:datum->syntax
+          `(,(s:car x) ,(s:car object) ; (s:car x) is define -- reuse that.
+            (,(s:core 'lambda)
+             ,(s:cdr object)
+             ,@(s:push-down body))))))))
+
+;;; Should only be called in the global environment.
+(define (s:expand-define x env menv)
+  (let ((x (s:unnest-define x)))
+    `(define ,@(s:expand-exprs (s:cdr x) env menv))))
+
+
+;;;; Expanding cond.
+
+(define (s:else? x env)
+  (and (s:identifier? x)
+       (let ((binding (s:id-binding x env)))
+         (eq? (binding-type binding) 'core-aux))))
+
+;;; TODO: support =>
+(define (s:expand-cond x env menv)
+  (let ((clauses (s:cdr x)))
+    (if (s:null? clauses)
+        `#!unspecific
+        (let ((first (s:car clauses)))
+          (let ((first-predicate (s:car first))
+                (first-consequence
+                 ;; Ensure the consequence is a single expression.
+                 `(,(s:core 'begin)
+                   ,@(s:push-down (s:cdr first)))))
+            (if (s:else? first-predicate env)
+                (s:expand (s:datum->syntax first-consequence) env menv)
                 (s:expand
-                 `(if ,first-predicate
-                      ,first-consequence
-                      (cond ,@(cdr branches)))))))
-        '#!unspecific)))
+                 (s:datum->syntax
+                  `(,(s:core 'if) ,first-predicate
+                    ,first-consequence
+                    (,(s:core 'cond) ,@(s:push-down (s:cdr clauses)))))
+                 env menv)))))))
 
-(define-generic-procedure-handler s:expand
-  (match-args cond?)
-  expand-cond)
+
+;;;; Expanding quasiquotes.
 
-(define (case? exp) (special-form? exp 'case))
-(define (case-candidate exp) (cadr exp))
-(define (case-branches exp) (cddr exp))
-(define (case-branch-data exp) (car exp))
-(define (case-branch-consequence exp) (cadr exp))
+(define-record-type <qq-component>
+  (%make-qq-component type expr)
+  qq-component?
+  (type %qq-component-type)
+  (expr %qq-component-expr))
 
-(define (expand-case exp)
-  (let ((temp-var (generate-uninterned-symbol 'case-var)))
-    (let ((result
-           `(let ((,temp-var ,(case-candidate exp)))
-              (cond
-               ,@(map (lambda (branch)
-                        (let ((data (case-branch-data branch)))
-                          (if (eq? data 'else)
-                              `(else ,(case-branch-consequence branch))
-                              ;; TODO: what if user redefines memq?
-                              `((memq ,temp-var (quote ,data))
-                                ,(case-branch-consequence branch)))))
-                      (case-branches exp))))))
-      (s:expand result))))
+(define (s:qq-single x) (%make-qq-component 'single x))
+(define (s:qq-splicing x) (%make-qq-component 'splicing x))
+(define (s:qq-expr x) (%qq-component-expr x))
+(define (s:qq-single? x)
+  (eq? (%qq-component-type x) 'single))
 
-(define-generic-procedure-handler s:expand
-  (match-args case?)
-  expand-case)
+(define (s:expand-qq-list x d env menv)
+  (let ((elems (s:map (lambda (y)
+                        (s:expand-qq y d env menv))
+                      x)))
+    (if (and (list? elems)
+             (every s:qq-single? elems))
+        `(%list ,@(map s:qq-expr elems))
+        (let ((append-args
+               (let loop ((rest elems))
+                 (cond ((null? rest) '())
+                       ((pair? rest)
+                        (cons (if (s:qq-single? (car rest))
+                                  `(%list ,(s:qq-expr (car rest)))
+                                  (s:qq-expr (car rest)))
+                              (loop (cdr rest))))
+                       (else (if (s:qq-single? rest)
+                                 (list (s:qq-expr rest))
+                                 (s:error (s:qq-expr rest)
+                                          "inappropriate use of ,@")))))))
+          `(%append ,@append-args)))))
 
-(define (lambda? exp) (special-form? exp 'lambda))
-(define (lambda-parameters exp) (cadr exp))
-(define (lambda-body exp) (cddr exp))
+(define (s:expand-qq x d env menv)
+  (cond ((s:pair? x)
+         (let ((first (syntax-object-expr (s:car x))))
+           (cond ((enriched-symbol-base=? 'quasiquote first)
+                  (s:qq-single (s:expand-qq-list x (+ d 1) env menv)))
+                 ((enriched-symbol-base=? 'unquote first)
+                  (if (= d 0)
+                      (s:qq-single (s:expand (s:cadr x) env menv))
+                      (s:qq-single (s:expand-qq-list x (- d 1) env menv))))
+                 ((enriched-symbol-base=? 'unquote-splicing first)
+                  (if (= d 0)
+                      (s:qq-splicing (s:expand (s:cadr x) env menv))
+                      (s:qq-single (s:expand-qq-list x (- d 1) env menv))))
+                 (else
+                  (s:qq-single (s:expand-qq-list x d env menv))))))
+        ((s:identifier? x)
+         (s:qq-single `(quote ,(s:strip x))))
+        (else
+         (s:qq-single (s:strip x)))))
 
-(define (expand-lambda exp)
-  `(lambda ,(lambda-parameters exp)
-     ,@(map s:expand (lambda-body exp))))
+(define (s:expand-quasiquote x env menv)
+  (let ((atom (s:expand-qq (s:cadr x) 0 env menv)))
+    (if (s:qq-single? atom)
+        (s:qq-expr atom)
+        (s:error (s:qq-expr atom) "inappropriate use of ,@"))))
 
-(define-generic-procedure-handler s:expand
-  (match-args lambda?)
-  expand-lambda)
+
+;;;; A few other forms and we are done!
 
-(define (simple-let? exp)
-  (and (special-form? exp 'let)
-       (pair? (cadr exp))))
-(define (simple-let-bindings exp) (cadr exp))
-(define (simple-let-body exp) (cddr exp))
-(define (let-binding-name exp) (car exp))
-(define (let-binding-value exp) (cadr exp))
+(define (s:expand-begin x env menv)
+  `(begin ,@(s:expand-exprs (s:cdr x) env menv)))
 
-(define (expand-simple-let exp)
-  (let ((bindings (simple-let-bindings exp)))
-    (let ((names (map let-binding-name bindings))
-          (values (map let-binding-value bindings)))
-      (let ((result
-             `((lambda ,names ,@(simple-let-body exp))
-               ,@values)))
-        (s:expand result)))))
+(define (s:expand-set! x env menv)
+  (let ((dest (s:cadr x))
+        (expr (s:car (s:cddr x))))
+    (if (s:identifier? dest)
+        (let ((binding (s:id-binding dest env)))
+          (case (binding-type binding)
+            ((lexical global)
+             `(set! ,(s:refer-to dest binding)
+                    ,(s:expand expr env menv)))
+            (else
+             (s:error dest "can only set lexical/globally bound variables"))))
+        (s:error dest "can only set! identifier"))))
 
-(define-generic-procedure-handler s:expand
-  (match-args simple-let?)
-  expand-simple-let)
+
+;;;; Defining the initial wraps and environment.
 
-(define (let*? exp) (special-form? exp 'let*))
-(define (let*-bindings exp) (cadr exp))
-(define (let*-body exp) (cddr exp))
+(define s:initial-wrap)
+(define s:initial-env)
 
-(define (expand-let* exp)
-  (let ((bindings (let*-bindings exp))
-        (body (let*-body exp)))
-    (let ((first-binding (car bindings)))
-      (let ((result
-             (if (null? (cdr bindings))
-                 `(let ,bindings ,@body)
-                 `(let (,first-binding)
-                    (let* ,(cdr bindings) ,@body)))))
-        (s:expand result)))))
+(let ((bindings
+       `((quote . ,(make-binding 'core s:expand-quote))
+         (quasiquote . ,(make-binding 'core s:expand-quasiquote))
+         (if . ,(make-binding 'core s:expand-if))
+         (let . ,(make-binding 'core s:expand-let))
+         (letrec . ,(make-binding 'core s:expand-letrec))
+         (letrec* . ,(make-binding 'core s:expand-letrec))
+         (define . ,(make-binding 'core s:expand-define))
+         (set! . ,(make-binding 'core s:expand-set!))
+         (else . ,(make-binding 'core-aux 'else))
+         (begin . ,(make-binding 'core s:expand-begin))
+         (lambda . ,(make-binding 'core s:expand-lambda))
+         (cond . ,(make-binding 'core s:expand-cond)))))
+  (let ((labels (map (lambda (x) (make-label)) bindings)))
+    (set! s:initial-wrap
+          `(,@(map (lambda (sym label)
+                     (make-subst sym (list %the-top-mark) label))
+                   (map car bindings)
+                   labels)
+            ,%the-top-mark))
+    (set! s:initial-env
+          (map cons labels (map cdr bindings)))))
 
-(define-generic-procedure-handler s:expand
-  (match-args let*?)
-  expand-let*)
-
-(define (letrec? exp) (special-form? exp 'letrec))
-(define (letrec-bindings exp) (cadr exp))
-(define (letrec-body exp) (cddr exp))
-
-(define (expand-letrec exp)
-  (let ((bindings (letrec-bindings exp)))
-    (let ((result
-           `(let ,(map (lambda (binding)
-                         `(,(let-binding-name binding) #f))
-                       bindings)
-              ,@(map (lambda (binding)
-                       `(set! ,(let-binding-name binding)
-                              ,(let-binding-value binding)))
-                     bindings)
-              ,@(letrec-body exp))))
-      (s:expand result))))
-
-(define-generic-procedure-handler s:expand
-  (match-args letrec?)
-  expand-letrec)
-
-(define (quote? exp) (special-form? exp 'quote))
-(define (quote-datum exp) (cadr exp))
-
-(define (expand-quote exp) exp)
-
-(define-generic-procedure-handler s:expand
-  (match-args quote?)
-  expand-quote)
-
-(define (quasiquote? exp) (special-form? exp 'quasiquote))
-(define (quasiquote-datum exp) (cadr exp))
-
-;;; TODO: this is just a placeholder. Expansion of quasiquote is very untrivial.
-(define (expand-quasiquote exp) exp)
-
-(define-generic-procedure-handler s:expand
-  (match-args quasiquote?)
-  expand-quasiquote)
+(define (syntactic-expand x)
+  (s:expand (make-syntax-object x s:initial-wrap)
+            s:initial-env
+            s:initial-env))

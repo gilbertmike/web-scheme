@@ -11,4 +11,4 @@
       (load (pathname-new-directory path common-directory)))))
 
 (load-here "symbol.scm")
-(load-here "better-expand.scm")
+(load-here "expand.scm")
