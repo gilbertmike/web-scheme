@@ -1,26 +1,40 @@
+#pragma once
+
 #include <cstdint>
+#include <variant>
 
-// objects in Scheme
-enum type_t { UNASSIGNED, INTEGER, PAIR, BOOLEAN };
+#include "gc.h"
 
-struct object_t {
-  typedef object_t* const cptr;
-
-  type_t type;
-
-  union {
-    int64_t integer;
-    pair_t* pair;
-    bool boolean;
-  };
-};
+struct object_t;
 
 // variables contain pointer to an object
 typedef object_t* value_t;
 
 struct pair_t {
-  object_t* car;
-  pair_t* cdr;
+  value_t car;
+  value_t cdr;
 };
 
+// unassigned variables
 extern object_t* unassgined;
+
+struct object_t : garbage_collected_t {
+  std::variant<int64_t, pair_t, bool> value;
+
+  void mark_children() {
+    std::visit(
+        [](auto&& arg) {
+          using T = std::decay_t<decltype(arg)>;
+          if constexpr (std::is_same_v<T, int64_t>) {
+            /* do nothing */
+          } else if constexpr (std::is_same_v<T, bool>) {
+            /* do nothing */
+          } else if constexpr (std::is_same_v<T, pair_t>) {
+            arg.car->mark_children();
+            arg.cdr->mark_children();
+          } else {
+          }
+        },
+        value);
+  };
+};
