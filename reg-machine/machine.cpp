@@ -1,51 +1,31 @@
-#include <cstdint>
-#include <stack>
-#include <vector>
+#include "machine.h"
 
-#include "instr.h"
-#include "types.h"
+reg_t::reg_t() : value(unassgined) {}
 
-class reg_t {
- public:
-  reg_t(value_t value) : value(value) {}
+reg_t::reg_t(value_t value) : value(value) {}
 
-  void set(value_t new_value) { value = new_value; }
+void reg_t::set(value_t new_value) { value = new_value; }
 
-  value_t get() const { return value; }
+value_t reg_t::get() const { return value; }
 
- private:
-  value_t value;
-};
+stack_t::stack_t() {}
 
-class stack_t {
- public:
-  stack_t();
+void stack_t::push(value_t value) { stack.emplace(value); }
 
-  void push(value_t value) { stack.emplace(value); }
+value_t stack_t::pop() {
+  auto top = stack.top();
+  stack.pop();
+  return top;
+}
 
-  value_t pop() {
-    auto top = stack.top();
-    stack.pop();
-    return top;
-  }
+machine_t::machine_t(int rfile_size, const std::vector<instr_t>& instructions)
+    : pc(value_t(0)),
+      flag(value_t(false)),
+      instructions(instructions),
+      rfile(rfile_size) {}
 
- private:
-  std::stack<value_t> stack;
-};
+void machine_t::start() { pc.get(); }
 
-struct machine_t {
-  machine_t(int rfile_size, const std::vector<instr_t>& instructions)
-      : pc(value_t(0)),
-        flag(value_t(false)),
-        instructions(instructions),
-        rfile(rfile_size) {}
-
-  void start_execution() { pc.get(); }
-
-  reg_t pc;
-  reg_t flag;
-  stack_t stack;
-  std::vector<instr_t> instructions;
-
-  std::vector<reg_t> rfile;
-};
+machine_t machine_t::construct_from_string(std::string_view text) {
+  
+}
