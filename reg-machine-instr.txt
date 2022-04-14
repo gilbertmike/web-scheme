@@ -1,0 +1,66 @@
+Syntax of program:
+
+<text> ::= <register-declaration> <program>
+
+Declaring registers:
+
+<register-declaration> ::= (<register-list>)
+<register-list> ::= <register>  | <register> <register-list>
+
+Program instructions:
+
+<program> ::= <line> | <line> <program>
+<line> ::= <assign>
+         | <perform>
+         | <test>
+         | <branch>
+         | <goto>
+         | <save>
+         | <restore>
+         | <label-name>
+
+<assign> ::= (assign <register> <assignee>)
+<assignee> ::= <register>
+             | <const>
+             | <label>
+             | <application>
+
+<perform> ::= (perform <application>)
+
+<test> ::= (test <application>)
+
+<branch> ::= (branch <label>)
+
+<goto> ::= (goto <label>)
+
+<save> ::= (save <register>)
+
+<restore> ::= (restore <register>)
+
+Operands:
+
+<register> ::= (reg <reg-name>)
+
+<const> ::= (const <object>)
+<object> ::= <integer>
+           | <empty-list>
+           | <quoted>
+
+<label> ::= (label <label-name>)
+
+<application> ::= (op <operation>) <operands>
+<operands> ::= <operand> | <operand> <operands>
+<operand> ::= <register> | <const>
+
+Example program:
+
+((reg a) (reg b) (reg c))
+start
+(assign a (const 0))
+(assign b (const 'x))
+(assign c (label loop))
+loop
+(assign a (op +) (reg a) (const 3))
+(test (op >) (reg a) (const 5))
+(branch (label loop))
+(goto (reg c))
