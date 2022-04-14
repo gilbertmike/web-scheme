@@ -19,7 +19,7 @@ Program instructions:
          | <restore>
          | <label-name>
 
-<assign> ::= (assign <register> <assignee>)
+<assign> ::= (assign <reg-name> <assignee>)
 <assignee> ::= <register>
              | <const>
              | <label>
@@ -32,10 +32,11 @@ Program instructions:
 <branch> ::= (branch <label>)
 
 <goto> ::= (goto <label>)
+         | (goto <register>)
 
-<save> ::= (save <register>)
+<save> ::= (save <reg-name>)
 
-<restore> ::= (restore <register>)
+<restore> ::= (restore <reg-name>)
 
 Operands:
 
