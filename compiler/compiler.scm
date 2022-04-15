@@ -6,52 +6,29 @@
 
 (define (compile exp target linkage)
   (cond ((self-evaluating? exp)
-	 (begin
-	   (pp "compile-self-evaluating")
-	   (compile-self-evaluating exp target linkage)))
+	 (compile-self-evaluating exp target linkage))
         ((quoted? exp)
-	 (begin
-	   (pp "compile-quoted")
-	   (compile-quoted exp target linkage)))
+	 (compile-quoted exp target linkage))
         ((variable? exp)
-	 (begin
-	   (pp "compile-variable")
-	   (compile-variable exp target linkage)))
+	 (compile-variable exp target linkage))
         ((assignment? exp)
-	 (begin
-	   (pp "compile-assignment")
-	   (compile-assignment exp target linkage)))
+	 (compile-assignment exp target linkage))
         ((definition? exp)
-	 (begin
-	   (pp "compile-definition")
-	   (compile-definition exp target linkage)))
+	 (compile-definition exp target linkage))
         ((if? exp)
-	 (begin
-	   (pp "compile-if")
-	   (compile-if exp target linkage)))
+	 (compile-if exp target linkage))
         ((lambda? exp)
-	 (begin
-	   (pp "compile-lambda")
-	   (compile-lambda exp target linkage)))
+	 (compile-lambda exp target linkage))
         ((begin? exp)
-	 (begin
-	   (pp "compile-sequence")
-	   (compile-sequence (begin-actions exp)
-			     target
-			     linkage)))
+	 (compile-sequence (begin-actions exp)
+			   target
+			   linkage))
         ((cond? exp)
-	 (begin
-	   (pp "compile-condition")
-	   (compile (cond->if exp) target linkage)))
+	 (compile (cond->if exp) target linkage))
         ((application? exp)
-	 (begin
-	   (pp "compile-application")
-	   (compile-application exp target linkage)))
-
+	 (compile-application exp target linkage))
 	((enriched-symbol? exp)
-	 (begin
-	   (pp "compile-enriched-symbol")
-	   (compile-enriched-symbol exp target linkage)))
+	 (compile-enriched-symbol exp target linkage))
 	
         (else
          (error "Unknown expression type -- COMPILE" exp))))
@@ -61,10 +38,6 @@
 
 (define (empty-instruction-sequence)
   (make-instruction-sequence '() '() '()))
-
-
-(define (compile-enriched-symbol exp target linkage)
-  (compile (enriched-symbol-base exp) target linkage))
 
 
 
@@ -320,6 +293,9 @@
 ;; footnote
 (define all-regs '(env proc val argl continue))
 
+;;; expanded syntax
+(define (compile-enriched-symbol exp target linkage)
+  (compile (enriched-symbol-base exp) target linkage))
 
 ;;;SECTION 5.5.4
 
