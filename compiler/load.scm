@@ -12,3 +12,5 @@
 
 (load-here "symbol.scm")
 (load-here "expand.scm")
+(load-here "syntax.scm")
+(load-here "compiler.scm")
