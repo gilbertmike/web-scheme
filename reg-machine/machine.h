@@ -32,8 +32,9 @@ class stack_t {
   std::stack<value_t> stack;
 };
 
-class machine_t {
-  machine_t(int rfile_size, const std::vector<instr_t>& instructions);
+struct machine_t {
+  machine_t(int rfile_size);
+  machine_t(int rfile_size, std::vector<instr_t::u_ptr>&& instructions);
 
   static machine_t construct_from_string(std::string_view text);
 
@@ -42,7 +43,7 @@ class machine_t {
   reg_t pc;
   reg_t flag;
   stack_t stack;
-  std::vector<instr_t> instructions;
+  std::vector<instr_t::u_ptr> instructions;
 
   std::vector<reg_t> rfile;
 };

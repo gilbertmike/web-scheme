@@ -18,14 +18,13 @@ value_t stack_t::pop() {
   return top;
 }
 
-machine_t::machine_t(int rfile_size, const std::vector<instr_t>& instructions)
+machine_t::machine_t(int rfile_size)
+    : pc(value_t(0)), flag(value_t(false)), instructions(), rfile(rfile_size) {}
+
+machine_t::machine_t(int rfile_size, std::vector<instr_t::u_ptr>&& instructions)
     : pc(value_t(0)),
       flag(value_t(false)),
-      instructions(instructions),
+      instructions(std::move(instructions)),
       rfile(rfile_size) {}
 
 void machine_t::start() { pc.get(); }
-
-machine_t machine_t::construct_from_string(std::string_view text) {
-  
-}
