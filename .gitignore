@@ -5,3 +5,8 @@
 *.scm~
 *.scm#*
 .#*.scm
+
+*.o
+*.out
+
+.vscode
