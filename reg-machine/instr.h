@@ -9,15 +9,11 @@
 struct reg_t;
 struct machine_t;
 
-struct label_t {
-  uintptr_t pc;
+/*** Base instructions ***/
+
+struct instr_t {
+  typedef std::unique_ptr<instr_t> u_ptr;
 };
-
-struct instr_t {};
-
-/***
- * Base instructions
- ***/
 
 struct assign_reg_instr_t : instr_t {
   reg_t* dst;
@@ -45,9 +41,7 @@ struct test_instr_t : instr_t {
   std::vector<std::variant<reg_t*, value_t>> args;
 };
 
-/***
- * Label instructions
- ***/
+/*** Label instructions ***/
 
 struct branch_instr_t : instr_t {
   label_t dst;
@@ -66,9 +60,7 @@ struct goto_reg_instr_t : instr_t {
   reg_t* dst;
 };
 
-/***
- * Stack instructions
- ***/
+/*** Stack instructions ***/
 
 struct save_instr_t : instr_t {
   reg_t* src;
