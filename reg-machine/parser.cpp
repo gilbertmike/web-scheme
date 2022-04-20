@@ -2,6 +2,7 @@
 
 #include <assert.h>
 
+#include <algorithm>
 #include <iostream>
 #include <istream>
 #include <map>
@@ -216,7 +217,6 @@ instr_t::u_ptr parse_assign(token_list_t::iterator& it, const regmap_t& regmap,
     ++it;
     auto const_val = parse_object(it);
 
-    ++it;
     assert(*it == ")");  // (assign dst (const src *)* )
     ++it;
     assert(*it == ")");  // (assign dst (const src) *)*
@@ -376,7 +376,6 @@ std::vector<std::variant<reg_t*, value_t>> parse_operands(
         ++it;
         operands.push_back(parse_object(it));
 
-        ++it;
         assert(*it == ")");  // (const arg *)*
         ++it;
       } else {
@@ -388,7 +387,22 @@ std::vector<std::variant<reg_t*, value_t>> parse_operands(
   return operands;
 }
 
-value_t parse_object(token_list_t::iterator& it) {}
+value_t parse_object(token_list_t::iterator& it) {
+  value_t obj;
+  if (it[0] == "empty-list") {
+    obj = new object_t(pair_t{.car = unassgined, .cdr = unassgined});
+  } else if (it[0].front() == '\'') {
+    obj = new object_t(quoted_t{.value = it[0].substr(1)});
+  } else if (std::all_of(it[0].begin(), it[0].end(), ::isdigit)) {
+    obj = new object_t(static_cast<int64_t>(std::stoll(it[0])));
+  } else if (it[0].front() == '#') {
+    obj = new object_t(it[0].at(1) == 'f');
+  } else {
+    throw std::runtime_error("error parsing object");
+  }
+  ++it;
+  return obj;
+}
 
 void skip_whitespace(std::istream& is) {
   while (std::isspace(is.peek())) {
@@ -405,9 +419,9 @@ void test_parser() {
       "(assign c (const #f))"
       "(test (op =) (reg b) (const 3))"
       "(branch (label label-2))"
-      "(assign a (const nil))"
+      "(assign a (const empty-list))"
       "label-2"
-      "(assign b (const nil))"
+      "(assign b (const empty-list))"
       "(assign c (op cons) (reg c) (reg b))";
 
   std::stringstream ss(test_program);
