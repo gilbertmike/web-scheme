@@ -20,3 +20,6 @@ all-wasm: $(WASM_OBJS)
 
 %.owasm: %.cpp
 	emcc -c $(CXXFLAGS) $< -o $@
+
+clean-wasm:
+	rm *.owasm *.outwasm
