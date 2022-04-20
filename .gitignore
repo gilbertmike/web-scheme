@@ -9,4 +9,7 @@
 *.o
 *.out
 
+*.owasm
+*.outwasm
+
 .vscode
