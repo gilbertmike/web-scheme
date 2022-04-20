@@ -4,6 +4,8 @@ garbage_collected_t::garbage_collected_t() : marked(false) {
   garbage_collector.add_gc_object(this);
 }
 
+garbage_collected_t::~garbage_collected_t() {}
+
 void garbage_collected_t::mark() {
   marked = true;
   mark_children();
