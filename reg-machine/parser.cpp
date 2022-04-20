@@ -200,7 +200,7 @@ instr_t::u_ptr parse_assign(token_list_t::iterator& it, const regmap_t& regmap,
     assert(*it == ")");  // (assign dst (reg src) *)*
 
     return std::make_unique<assign_reg_instr_t>(
-        assign_reg_instr_t{.dst = dst_ptr, .src = src_ptr});
+        assign_reg_instr_t(dst_ptr, src_ptr));
   } else if (*it == "label") {
     ++it;
     auto label_name = *it;
@@ -212,7 +212,7 @@ instr_t::u_ptr parse_assign(token_list_t::iterator& it, const regmap_t& regmap,
     assert(*it == ")");  // (assign dst (reg src) *)*
 
     return std::make_unique<assign_label_instr_t>(
-        assign_label_instr_t{.dst = dst_ptr, .label = label_t{label}});
+        assign_label_instr_t(dst_ptr, label_t{label}));
   } else if (*it == "const") {
     ++it;
     auto const_val = parse_object(it);
@@ -222,7 +222,7 @@ instr_t::u_ptr parse_assign(token_list_t::iterator& it, const regmap_t& regmap,
     assert(*it == ")");  // (assign dst (const src) *)*
 
     return std::make_unique<assign_const_instr_t>(
-        assign_const_instr_t{.dst = dst_ptr, .src = const_val});
+        assign_const_instr_t(dst_ptr, const_val));
   } else if (*it == "op") {
     ++it;
     auto op_name = *it;
@@ -236,7 +236,7 @@ instr_t::u_ptr parse_assign(token_list_t::iterator& it, const regmap_t& regmap,
     ++it;
 
     return std::make_unique<assign_op_instr_t>(
-        assign_op_instr_t{.dst = dst_ptr, .op = op, .args = args});
+        assign_op_instr_t(dst_ptr, op, std::move(args)));
   } else {
     throw std::runtime_error("error parsing assign");
   }
@@ -262,7 +262,7 @@ perform_instr_t::u_ptr parse_perform(token_list_t::iterator& it,
   auto args = parse_operands(it, regmap);
 
   return std::make_unique<perform_instr_t>(
-      perform_instr_t{.op = op, .args = args});
+      perform_instr_t(op, std::move(args)));
 }
 
 test_instr_t::u_ptr parse_test(token_list_t::iterator& it,
@@ -285,7 +285,7 @@ test_instr_t::u_ptr parse_test(token_list_t::iterator& it,
   auto args = parse_operands(it, regmap);
   ++it;
 
-  return std::make_unique<test_instr_t>(test_instr_t{.op = op, .args = args});
+  return std::make_unique<test_instr_t>(test_instr_t(op, std::move(args)));
 }
 
 branch_instr_t::u_ptr parse_branch(token_list_t::iterator& it,
@@ -300,8 +300,7 @@ branch_instr_t::u_ptr parse_branch(token_list_t::iterator& it,
 
   it += 6;  // to last paren
 
-  return std::make_unique<branch_instr_t>(
-      branch_instr_t{.dst = label_t{label}});
+  return std::make_unique<branch_instr_t>(branch_instr_t(label_t{label}));
 }
 
 instr_t::u_ptr parse_goto(token_list_t::iterator& it, const regmap_t& regmap,
@@ -316,7 +315,7 @@ instr_t::u_ptr parse_goto(token_list_t::iterator& it, const regmap_t& regmap,
 
     it += 6;  // to last paren
 
-    return std::make_unique<goto_reg_instr_t>(goto_reg_instr_t{.dst = reg});
+    return std::make_unique<goto_reg_instr_t>(goto_reg_instr_t(reg));
   } else if (it[3] == "label") {
     auto labelname = it[4];
     auto label = labelmap.at(labelname);
@@ -324,7 +323,7 @@ instr_t::u_ptr parse_goto(token_list_t::iterator& it, const regmap_t& regmap,
     it += 7;
 
     return std::make_unique<goto_label_instr_t>(
-        goto_label_instr_t{.dst = label_t{label}});
+        goto_label_instr_t(label_t{label}));
   }
 
   throw std::runtime_error("error parsing goto");
@@ -340,7 +339,7 @@ save_instr_t::u_ptr parse_save(token_list_t::iterator& it,
 
   it += 4;
 
-  return std::make_unique<save_instr_t>(save_instr_t{.src = reg});
+  return std::make_unique<save_instr_t>(save_instr_t(reg));
 }
 
 restore_instr_t::u_ptr parse_restore(token_list_t::iterator& it,
@@ -353,7 +352,7 @@ restore_instr_t::u_ptr parse_restore(token_list_t::iterator& it,
 
   it += 4;
 
-  return std::make_unique<restore_instr_t>(restore_instr_t{.dst = reg});
+  return std::make_unique<restore_instr_t>(restore_instr_t(reg));
 }
 
 std::vector<std::variant<reg_t*, value_t>> parse_operands(
@@ -431,4 +430,6 @@ void test_parser() {
 
   assert(machine.rfile.size() == 3);
   assert(machine.instructions.size() == 8);
+
+  machine.start();
 }
