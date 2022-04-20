@@ -32,9 +32,13 @@ struct object_t : garbage_collected_t {
   std::variant<int64_t, bool, pair_t, quoted_t, label_t> value;
 
   object_t() : value() {}
-
   template <typename T>
   object_t(T&& value) : value(std::forward<T>(value)) {}
+
+  template <typename T>
+  T as() {
+    return std::get<T>(value);
+  }
 
   void mark_children() {
     std::visit(
