@@ -6,7 +6,11 @@ class garbage_collected_t {
  public:
   garbage_collected_t();
 
+  virtual ~garbage_collected_t();
+
   void mark();
+  void unmark();
+  bool is_marked() const;
 
   virtual void mark_children() = 0;
 
