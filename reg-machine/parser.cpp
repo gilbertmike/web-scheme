@@ -300,7 +300,8 @@ branch_instr_t::u_ptr parse_branch(token_list_t::iterator& it,
 
   it += 6;  // to last paren
 
-  return std::make_unique<branch_instr_t>(branch_instr_t{.dst = label});
+  return std::make_unique<branch_instr_t>(
+      branch_instr_t{.dst = label_t{label}});
 }
 
 instr_t::u_ptr parse_goto(token_list_t::iterator& it, const regmap_t& regmap,
@@ -323,7 +324,7 @@ instr_t::u_ptr parse_goto(token_list_t::iterator& it, const regmap_t& regmap,
     it += 7;
 
     return std::make_unique<goto_label_instr_t>(
-        goto_label_instr_t{.dst = label});
+        goto_label_instr_t{.dst = label_t{label}});
   }
 
   throw std::runtime_error("error parsing goto");
