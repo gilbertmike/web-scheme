@@ -34,7 +34,7 @@ struct object_t : garbage_collected_t {
   object_t() : value() {}
 
   template <typename T>
-  object_t(T&& value) : value(std::forward(value)) {}
+  object_t(T&& value) : value(std::forward<T>(value)) {}
 
   void mark_children() {
     std::visit(
