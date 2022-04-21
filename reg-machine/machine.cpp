@@ -1,5 +1,7 @@
 #include "machine.h"
 
+#include <iostream>
+
 reg_t::reg_t() : value(unassgined) {}
 
 reg_t::reg_t(value_t value) : value(value) {}
@@ -19,12 +21,26 @@ value_t stack_t::pop() {
 }
 
 machine_t::machine_t(int rfile_size)
-    : pc(value_t(0)), flag(value_t(false)), instructions(), rfile(rfile_size) {}
+    : pc(new object_t(label_t{0})),
+      flag(new object_t(false)),
+      instructions(),
+      rfile(rfile_size) {}
 
 machine_t::machine_t(int rfile_size, std::vector<instr_t::u_ptr>&& instructions)
-    : pc(value_t(0)),
-      flag(value_t(false)),
+    : pc(new object_t(label_t{0})),
+      flag(new object_t(false)),
       instructions(std::move(instructions)),
       rfile(rfile_size) {}
 
-void machine_t::start() { pc.get(); }
+void machine_t::start() {
+  while (true) {
+    uintptr_t cur_instr_idx = pc.get()->as<label_t>().dst;
+    if (cur_instr_idx >= instructions.size()) {
+      break;
+    }
+
+    pc.set(new object_t(label_t{cur_instr_idx + 1}));
+
+    instructions.at(cur_instr_idx)->execute(*this);
+  }
+}

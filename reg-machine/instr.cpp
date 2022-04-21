@@ -66,10 +66,10 @@ std::vector<value_t> get_arg_values(
                  [](auto&& arg) -> value_t {
                    value_t value = std::visit(
                        [](auto&& arg) -> value_t {
-                         using T = decltype(arg);
+                         using T = std::decay_t<decltype(arg)>;
                          if constexpr (std::is_same_v<T, reg_t*>) {
-                           return arg.get();
-                         } else if constexpr (std::is_same_v<T, pair_t>) {
+                           return arg->get();
+                         } else if constexpr (std::is_same_v<T, value_t>) {
                            return arg;
                          } else {
                            __builtin_unreachable();

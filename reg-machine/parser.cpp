@@ -133,12 +133,18 @@ std::map<std::string, uintptr_t> parse_labels(
 
   for (auto it = start; it != end; ++it) {
     if (*it == "(") {
-      while (*it != ")" && it != end) {
-        ++it;
+      ++it;
+      for (int open_paren = 1; open_paren > 0; ++it) {
+        if (*it == "(") {
+          ++open_paren;
+        } else if (*it == ")") {
+          --open_paren;
+        }
       }
-    } else if (*it == ")") {
-      /* do nothing */
+      --it;
+      ++pc;
     } else {
+      assert(*it != ")");
       labelmap.insert({*it, pc});
     }
   }
@@ -233,7 +239,6 @@ instr_t::u_ptr parse_assign(token_list_t::iterator& it, const regmap_t& regmap,
     ++it;
 
     auto args = parse_operands(it, regmap);
-    ++it;
 
     return std::make_unique<assign_op_instr_t>(
         assign_op_instr_t(dst_ptr, op, std::move(args)));
@@ -283,7 +288,6 @@ test_instr_t::u_ptr parse_test(token_list_t::iterator& it,
   ++it;
 
   auto args = parse_operands(it, regmap);
-  ++it;
 
   return std::make_unique<test_instr_t>(test_instr_t(op, std::move(args)));
 }
@@ -362,22 +366,18 @@ std::vector<std::variant<reg_t*, value_t>> parse_operands(
   assert(*it == "(");
 
   for (; *it != ")"; ++it) {
-    if (*it == "(") {
-      ++it;
-      if (*it == "reg") {
-        ++it;
-        auto reg_name = *it;
+    if (it[0] == "(") {
+      if (it[1] == "reg") {
+        auto reg_name = it[2];
         operands.push_back(regmap.at(reg_name));
 
-        ++it;
-        assert(*it == ")");  // (reg arg *)*
-        ++it;
-      } else if (*it == "const") {
-        ++it;
+        assert(it[3] == ")");  // (reg arg *)*
+        it += 3;
+      } else if (it[1] == "const") {
+        it += 2;
         operands.push_back(parse_object(it));
 
-        assert(*it == ")");  // (const arg *)*
-        ++it;
+        assert(it[0] == ")");  // (const arg *)*
       } else {
         throw std::runtime_error("error parsing operands");
       }
@@ -408,28 +408,4 @@ void skip_whitespace(std::istream& is) {
   while (std::isspace(is.peek())) {
     is.get();
   }
-}
-
-void test_parser() {
-  const char* test_program =
-      "(registers a b c)"
-      " label-1"
-      "  (assign a ( reg b) )  "
-      "(assign b (op +) (const 1) (const 2))\n"
-      "(assign c (const #f))"
-      "(test (op =) (reg b) (const 3))"
-      "(branch (label label-2))"
-      "(assign a (const empty-list))"
-      "label-2"
-      "(assign b (const empty-list))"
-      "(assign c (op cons) (reg c) (reg b))";
-
-  std::stringstream ss(test_program);
-  auto tokens = tokenize(ss);
-  auto machine = parse(tokens.begin(), tokens.end());
-
-  assert(machine.rfile.size() == 3);
-  assert(machine.instructions.size() == 8);
-
-  machine.start();
 }
