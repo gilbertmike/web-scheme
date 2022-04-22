@@ -30,7 +30,8 @@ struct assign_const_instr_t : instr_t {
   reg_t* dst;
   value_t src;
 
-  assign_const_instr_t(reg_t* dst, value_t src) : dst(dst), src(src) {}
+  assign_const_instr_t(reg_t* dst, value_t&& src)
+      : dst(dst), src(std::move(src)) {}
 
   void execute(machine_t& machine) override;
 };

@@ -17,9 +17,7 @@ void assign_op_instr_t::execute(machine_t& machine) {
   dst->set(op->execute(args));
 }
 
-void assign_label_instr_t::execute(machine_t& machine) {
-  dst->set(new object_t(label));
-}
+void assign_label_instr_t::execute(machine_t& machine) { dst->set(label); }
 
 void perform_instr_t::execute(machine_t& machine) {
   auto args = get_arg_values(this->args);
@@ -33,14 +31,12 @@ void test_instr_t::execute(machine_t& machine) {
 }
 
 void branch_instr_t::execute(machine_t& machine) {
-  if (machine.flag.get()->as<bool>()) {
-    machine.pc.set(new object_t(dst));
+  if (machine.flag.get().as<bool>()) {
+    machine.pc.set(dst);
   }
 }
 
-void goto_label_instr_t::execute(machine_t& machine) {
-  machine.pc.set(new object_t(dst));
-}
+void goto_label_instr_t::execute(machine_t& machine) { machine.pc.set(dst); }
 
 void goto_reg_instr_t::execute(machine_t& machine) {
   machine.pc.set(dst->get());

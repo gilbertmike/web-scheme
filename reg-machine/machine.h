@@ -10,9 +10,9 @@
 class reg_t {
  public:
   reg_t();
-  reg_t(value_t value);
+  reg_t(const value_t& value);
 
-  void set(value_t new_value);
+  void set(const value_t& new_value);
 
   value_t get() const;
 
@@ -24,7 +24,7 @@ class stack_t {
  public:
   stack_t();
 
-  void push(value_t value);
+  void push(const value_t& value);
 
   value_t pop();
 

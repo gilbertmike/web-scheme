@@ -1,18 +1,18 @@
 #include "machine.h"
 
-#include <iostream>
+#include "types.h"
 
-reg_t::reg_t() : value(unassgined) {}
+reg_t::reg_t() : value(unassigned_t()) {}
 
-reg_t::reg_t(value_t value) : value(value) {}
+reg_t::reg_t(const value_t& value) : value(value) {}
 
-void reg_t::set(value_t new_value) { value = new_value; }
+void reg_t::set(const value_t& new_value) { value = new_value; }
 
 value_t reg_t::get() const { return value; }
 
 stack_t::stack_t() {}
 
-void stack_t::push(value_t value) { stack.emplace(value); }
+void stack_t::push(const value_t& value) { stack.emplace(value); }
 
 value_t stack_t::pop() {
   auto top = stack.top();
@@ -21,25 +21,22 @@ value_t stack_t::pop() {
 }
 
 machine_t::machine_t(int rfile_size)
-    : pc(new object_t(label_t{0})),
-      flag(new object_t(false)),
-      instructions(),
-      rfile(rfile_size) {}
+    : pc(label_t{0}), flag(false), instructions(), rfile(rfile_size) {}
 
 machine_t::machine_t(int rfile_size, std::vector<instr_t::u_ptr>&& instructions)
-    : pc(new object_t(label_t{0})),
-      flag(new object_t(false)),
+    : pc(label_t{0}),
+      flag(false),
       instructions(std::move(instructions)),
       rfile(rfile_size) {}
 
 void machine_t::start() {
   while (true) {
-    uintptr_t cur_instr_idx = pc.get()->as<label_t>().dst;
+    uintptr_t cur_instr_idx = pc.get().as<label_t>().dst;
     if (cur_instr_idx >= instructions.size()) {
       break;
     }
 
-    pc.set(new object_t(label_t{cur_instr_idx + 1}));
+    pc.set(label_t{cur_instr_idx + 1});
 
     instructions.at(cur_instr_idx)->execute(*this);
   }

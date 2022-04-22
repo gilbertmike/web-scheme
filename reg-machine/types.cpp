@@ -1,4 +1,3 @@
 #include "types.h"
 
-object_t unassgined_singleton;
-object_t* unassgined = &unassgined_singleton;
+bool operator==(const unassigned_t&, const unassigned_t&) { return true; }

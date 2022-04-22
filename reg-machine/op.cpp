@@ -28,9 +28,9 @@ struct add_op_t : op_t {
   value_t execute(const arg_list_t& args) override {
     int64_t result = 0;
     for (auto& arg : args) {
-      result += arg->as<int64_t>();
+      result += arg.as<int64_t>();
     }
-    return new object_t(result);
+    return result;
   }
 };
 
@@ -39,11 +39,11 @@ op_t* add_op = new add_op_t;
 struct sub_op_t : op_t {
   value_t execute(const arg_list_t& args) {
     assert(args.size() >= 1);
-    int64_t result = args.at(0)->as<int64_t>();
+    int64_t result = args.at(0).as<int64_t>();
     for (auto it = args.begin() + 1; it != args.end(); ++it) {
-      result -= (*it)->as<int64_t>();
+      result -= (*it).as<int64_t>();
     }
-    return new object_t(result);
+    return result;
   }
 };
 
@@ -52,8 +52,8 @@ op_t* sub_op = new sub_op_t;
 struct int_eq_op_t : op_t {
   value_t execute(const arg_list_t& args) {
     assert(args.size() == 2);
-    bool equal = args.at(0)->as<int64_t>() == args.at(1)->as<int64_t>();
-    return new object_t(equal);
+    bool equal = args.at(0).as<int64_t>() == args.at(1).as<int64_t>();
+    return equal;
   }
 };
 
@@ -64,7 +64,7 @@ struct cons_op_t : op_t {
     assert(args.size() == 2);
     value_t car = args.at(0);
     value_t cdr = args.at(1);
-    return new object_t(pair_t{.car = car, .cdr = cdr});
+    return new pair_t(std::move(car), std::move(cdr));
   }
 };
 
@@ -73,7 +73,7 @@ op_t* cons_op = new cons_op_t;
 struct car_op_t : op_t {
   value_t execute(const arg_list_t& args) {
     assert(args.size() == 1);
-    return args.at(0)->as<pair_t>().car;
+    return args.at(0).as<pair_t*>()->car;
   }
 };
 
@@ -82,7 +82,7 @@ op_t* car_op = new car_op_t;
 struct cdr_op_t : op_t {
   value_t execute(const arg_list_t& args) {
     assert(args.size() == 1);
-    return args.at(0)->as<pair_t>().cdr;
+    return args.at(0).as<pair_t*>()->cdr;
   }
 };
 

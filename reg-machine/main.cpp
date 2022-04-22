@@ -27,10 +27,12 @@ void test_reg_machine() {
 
   machine.start();
 
-  assert(machine.pc.get()->as<label_t>().dst == 8);
-  assert(machine.rfile.at(0).get() == unassgined);
-  assert(machine.rfile.at(1).get()->as<pair_t>().car == unassgined);
-  assert(machine.rfile.at(1).get()->as<pair_t>().cdr == unassgined);
+  assert(machine.pc.get().as<label_t>().dst == 8);
+  assert(machine.rfile.at(0).get().as<unassigned_t>() == unassigned_t());
+  assert(machine.rfile.at(1).get().as<pair_t*>()->car.as<unassigned_t>() ==
+         unassigned_t());
+  assert(machine.rfile.at(1).get().as<pair_t*>()->cdr.as<unassigned_t>() ==
+         unassigned_t());
 }
 
 int main(int argc, char* argv[]) {

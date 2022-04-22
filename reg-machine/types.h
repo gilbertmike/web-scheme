@@ -7,18 +7,7 @@
 
 #include "gc.h"
 
-struct object_t;
-
-// variables contain pointer to an object
-typedef object_t* value_t;
-
-// unassigned variables
-extern object_t* unassgined;
-
-struct pair_t {
-  value_t car;
-  value_t cdr;
-};
+struct pair_t;
 
 struct quoted_t {
   std::string value;
@@ -28,37 +17,53 @@ struct label_t {
   uintptr_t dst;
 };
 
-struct object_t : garbage_collected_t {
-  std::variant<int64_t, bool, pair_t, quoted_t, label_t> value;
+// unassigned variables
+struct unassigned_t {};
 
-  object_t() : value() {}
+bool operator==(const unassigned_t&, const unassigned_t&);
+
+// variables contain pointer to an object
+struct value_t {
+  std::variant<pair_t*, quoted_t, label_t, int64_t, bool, unassigned_t> value;
+
+  value_t() : value(unassigned_t()) {}
+  value_t(const value_t& other) : value(other.value) {}
+  value_t(value_t& other)  // otherwise it's inferred to be the templated
+                           // version
+      : value(other.value) {}
+  value_t(value_t&& other) : value(std::move(other.value)) {}
   template <typename T>
-  object_t(T&& value) : value(std::forward<T>(value)) {}
+  value_t(T&& val) : value(std::forward<T>(val)) {}
+
+  value_t& operator=(const value_t& other) {
+    value = other.value;
+    return *this;
+  }
 
   template <typename T>
-  T as() {
+  T as() const {
     return std::get<T>(value);
   }
 
   void mark_children() {
     std::visit(
         [](auto&& arg) {
-          using T = std::decay_t<decltype(arg)>;
-          if constexpr (std::is_same_v<T, int64_t>) {
-            /* do nothing */
-          } else if constexpr (std::is_same_v<T, bool>) {
-            /* do nothing */
-          } else if constexpr (std::is_same_v<T, pair_t>) {
-            arg.car->mark_children();
-            arg.cdr->mark_children();
-          } else if constexpr (std::is_same_v<T, quoted_t>) {
-            /* do nothing */
-          } else if constexpr (std::is_same_v<T, label_t>) {
-            /* do nothing */
-          } else {
-            throw std::runtime_error("not all object variant handled");
+          if constexpr (std::is_pointer_v<decltype(arg)>) {
+            arg->mark_children();
           }
         },
         value);
-  };
+  }
+};
+
+struct pair_t : garbage_collected_t {
+  value_t car;
+  value_t cdr;
+
+  pair_t(value_t&& car, value_t&& cdr) : car(car), cdr(cdr) {}
+
+  void mark_children() {
+    car.mark_children();
+    cdr.mark_children();
+  }
 };

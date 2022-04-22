@@ -228,7 +228,7 @@ instr_t::u_ptr parse_assign(token_list_t::iterator& it, const regmap_t& regmap,
     assert(*it == ")");  // (assign dst (const src) *)*
 
     return std::make_unique<assign_const_instr_t>(
-        assign_const_instr_t(dst_ptr, const_val));
+        assign_const_instr_t(dst_ptr, std::move(const_val)));
   } else if (*it == "op") {
     ++it;
     auto op_name = *it;
@@ -390,13 +390,13 @@ std::vector<std::variant<reg_t*, value_t>> parse_operands(
 value_t parse_object(token_list_t::iterator& it) {
   value_t obj;
   if (it[0] == "empty-list") {
-    obj = new object_t(pair_t{.car = unassgined, .cdr = unassgined});
+    obj = new pair_t(unassigned_t(), unassigned_t());
   } else if (it[0].front() == '\'') {
-    obj = new object_t(quoted_t{.value = it[0].substr(1)});
+    obj = quoted_t{.value = it[0].substr(1)};
   } else if (std::all_of(it[0].begin(), it[0].end(), ::isdigit)) {
-    obj = new object_t(static_cast<int64_t>(std::stoll(it[0])));
+    obj = static_cast<int64_t>(std::stoll(it[0]));
   } else if (it[0].front() == '#') {
-    obj = new object_t(it[0].at(1) == 'f');
+    obj = it[0].at(1) == 'f';
   } else {
     throw std::runtime_error("error parsing object");
   }
