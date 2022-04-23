@@ -62,9 +62,6 @@
        (or (symbol? (syntax-object-expr x))
            (enriched-symbol? (syntax-object-expr x)))))
 
-(define (s:self-evaluating? x)
-  (or (number? x) (string? x) (char? x) (boolean? x)))
-
 
 ;;;; Marks-related functions.
 
@@ -158,7 +155,7 @@
    's:expand 3
    (lambda (x env menv)
      (let ((stripped (s:strip x)))
-       (if (s:self-evaluating? stripped)
+       (if (self-evaluating? stripped)
            stripped
            (s:error x "invalid syntax"))))))
 
@@ -281,7 +278,34 @@
          ;; TODO: internal defines... a pain in the ass.
          ;; The problem is to recognize the bindings created by these defines,
          ;; and add them to env.
-         ,@(s:expand-exprs bodies env menv)))))
+         ,(s:expand-lambda-bodies bodies env menv)))))
+
+(define (s:expand-lambda-bodies bodies env menv)
+  (define (define? expr)
+    (and (s:pair? expr)
+         (let ((first (s:car expr)))
+           (and (s:identifier? first)
+                (enriched-symbol-base=? (syntax-object-expr first) 'define)
+                (let ((binding (s:id-binding first env)))
+                  (eq? (binding-type binding) 'core))))))
+  (let collect-define ((first (s:car bodies)) (rest (s:cdr bodies)) (defs '()))
+    (if (s:null? first)
+        (s:error bodies "Lambda body can't be empty of just define's."))
+    (if (define? first)
+        (let ((unnested (s:unnest-define first)))
+          (collect-define (s:car rest) (s:cdr rest)
+                          (cons (s:cdr unnested) defs)))
+        (let ((body
+               (if (s:null? rest)
+                   first
+                   (s:datum->syntax
+                    `(,(s:core 'begin) ,first ,@(s:push-down rest))))))
+          (if (null? defs)
+              (s:expand body env menv)
+              (s:expand
+               (s:datum->syntax
+                `(,(s:core 'letrec*) ,defs ,body))
+               env menv))))))
 
 
 ;;;; More expansion utilities.
@@ -491,6 +515,36 @@
              (s:error dest "can only set lexical/globally bound variables"))))
         (s:error dest "can only set! identifier"))))
 
+(define (s:expand-and x env menv)
+  (let ((conds (s:cdr x)))
+    (if (s:null? conds)
+        (s:error x "(and ...) must have at least one condition")
+        (let ((first (s:car conds))
+              (rest (s:cdr conds)))
+        (if (s:null? rest)
+            (s:expand first env menv)
+            (s:expand
+             (s:datum->syntax
+              `(,(s:core 'if) ,first
+                (,(s:core 'and) ,@(s:push-down rest))
+                #f))
+             env menv))))))
+
+(define (s:expand-or x env menv)
+  (let ((conds (s:cdr x)))
+    (if (s:null? conds)
+        (s:error x "(or ...) must have at least one condition")
+        (let ((first (s:car conds))
+              (rest (s:cdr conds)))
+          (if (s:null? rest)
+              (s:expand first env menv)
+              (s:expand
+               (s:datum->syntax
+                `(,(s:core 'if) ,first
+                  #t
+                  (,(s:core 'or) ,@(s:push-down rest))))
+               env menv))))))
+
 
 ;;;; Defining the initial wraps and environment.
 
@@ -506,6 +560,8 @@
          (letrec* . ,(make-binding 'core s:expand-letrec))
          (define . ,(make-binding 'core s:expand-define))
          (set! . ,(make-binding 'core s:expand-set!))
+         (and . ,(make-binding 'core s:expand-and))
+         (or . ,(make-binding 'core s:expand-or))
          (else . ,(make-binding 'core-aux 'else))
          (begin . ,(make-binding 'core s:expand-begin))
          (lambda . ,(make-binding 'core s:expand-lambda))
@@ -524,3 +580,5 @@
   (s:expand (make-syntax-object x s:initial-wrap)
             s:initial-env
             s:initial-env))
+
+

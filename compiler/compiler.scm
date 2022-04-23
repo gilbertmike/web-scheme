@@ -4,34 +4,18 @@
 
 ;;;SECTION 5.5.1
 
-(define (compile exp target linkage)
-  (cond ((self-evaluating? exp)
-	 (compile-self-evaluating exp target linkage))
-        ((quoted? exp)
-	 (compile-quoted exp target linkage))
-        ((variable? exp)
-	 (compile-variable exp target linkage))
-        ((assignment? exp)
-	 (compile-assignment exp target linkage))
-        ((definition? exp)
-	 (compile-definition exp target linkage))
-        ((if? exp)
-	 (compile-if exp target linkage))
-        ((lambda? exp)
-	 (compile-lambda exp target linkage))
-        ((begin? exp)
-	 (compile-sequence (begin-actions exp)
-			   target
-			   linkage))
-        ((cond? exp)
-	 (compile (cond->if exp) target linkage))
-        ((application? exp)
-	 (compile-application exp target linkage))
-	((enriched-symbol? exp)
-	 (compile-enriched-symbol exp target linkage))
-	
-        (else
-         (error "Unknown expression type -- COMPILE" exp))))
+
+(define (c:expression? exp) #t)
+(define (c:target? reg) (symbol? reg))
+(define (c:linkage? link) (symbol? link))
+
+(define compile
+  (simple-generic-procedure
+   'compile 3
+   (lambda (exp target linkage)
+     (if (pair? exp)
+         (compile-application exp target linkage)
+         (error "Unknown expression type -- COMPILE" exp)))))
 
 (define (make-instruction-sequence needs modifies statements)
   (list needs modifies statements))
@@ -39,95 +23,117 @@
 (define (empty-instruction-sequence)
   (make-instruction-sequence '() '() '()))
 
-
-
 ;;;SECTION 5.5.2
 
 ;;;linkage code
 
 (define (compile-linkage linkage)
   (cond ((eq? linkage 'return)
-         (make-instruction-sequence '(continue) '()
+         (make-instruction-sequence
+          '(continue) '()
           '((goto (reg continue)))))
         ((eq? linkage 'next)
          (empty-instruction-sequence))
         (else
-         (make-instruction-sequence '() '()
+         (make-instruction-sequence
+          '() '()
           `((goto (label ,linkage)))))))
 
 (define (end-with-linkage linkage instruction-sequence)
   (preserving '(continue)
-   instruction-sequence
-   (compile-linkage linkage)))
-
+              instruction-sequence
+              (compile-linkage linkage)))
 
 ;;;simple expressions
 
 (define (compile-self-evaluating exp target linkage)
-  (end-with-linkage linkage
-   (make-instruction-sequence '() (list target)
+  (end-with-linkage
+   linkage
+   (make-instruction-sequence
+    '() (list target)
     `((assign ,target (const ,exp))))))
 
+(define-generic-procedure-handler
+  compile
+  (match-args self-evaluating? c:target? c:linkage?)
+  compile-self-evaluating)
+
 (define (compile-quoted exp target linkage)
-  (end-with-linkage linkage
-   (make-instruction-sequence '() (list target)
-    `((assign ,target (const ,(text-of-quotation exp)))))))
+  (end-with-linkage
+   linkage
+   (make-instruction-sequence
+    '() (list target)
+    `((assign ,target (const ,(cadr exp)))))))
+
+(define-generic-procedure-handler
+  compile
+  (match-args (special-form-predicate 'quote) c:target? c:linkage?)
+  compile-quoted)
 
 (define (compile-variable exp target linkage)
-  (end-with-linkage linkage
-   (make-instruction-sequence '(env) (list target)
+  (end-with-linkage
+   linkage
+   (make-instruction-sequence
+    '(env) (list target)
     `((assign ,target
               (op lookup-variable-value)
-              (const ,exp)
+              (const ,(enriched-symbol-base exp))
               (reg env))))))
+
+(define-generic-procedure-handler
+  compile
+  (match-args variable? c:target? c:linkage?)
+  compile-variable)
 
 (define (compile-assignment exp target linkage)
   (let ((var (assignment-variable exp))
         (get-value-code
          (compile (assignment-value exp) 'val 'next)))
-    (end-with-linkage linkage
+    (end-with-linkage
+     linkage
      (preserving '(env)
-      get-value-code
-      (make-instruction-sequence '(env val) (list target)
-       `((perform (op set-variable-value!)
-                  (const ,var)
-                  (reg val)
-                  (reg env))
-         (assign ,target (const ok))))))))
+                 get-value-code
+                 (make-instruction-sequence
+                  '(env val) (list target)
+                  `((perform (op set-variable-value!)
+                             (const ,var)
+                             (reg val)
+                             (reg env))
+                    (assign ,target (const ok))))))))
+
+(define-generic-procedure-handler
+  compile
+  (match-args (special-form-predicate 'set!) c:target? c:linkage?)
+  compile-assignment)
 
 (define (compile-definition exp target linkage)
   (let ((var (definition-variable exp))
         (get-value-code
          (compile (definition-value exp) 'val 'next)))
-    (end-with-linkage linkage
+    (end-with-linkage
+     linkage
      (preserving '(env)
-      get-value-code
-      (make-instruction-sequence '(env val) (list target)
-       `((perform (op define-variable!)
-                  (const ,var)
-                  (reg val)
-                  (reg env))
-         (assign ,target (const ok))))))))
+                 get-value-code
+                 (make-instruction-sequence
+                  '(env val) (list target)
+                  `((perform (op define-variable!)
+                             (const ,var)
+                             (reg val)
+                             (reg env))
+                    (assign ,target (const ok))))))))
 
+(define-generic-procedure-handler
+  compile
+  (match-args (special-form-predicate 'define) c:target? c:linkage?)
+  compile-definition)
 
 ;;;conditional expressions
 
-;;;labels (from footnote)
-(define label-counter 0)
-
-(define (new-label-number)
-  (set! label-counter (+ 1 label-counter))
-  label-counter)
-
-(define (c:make-label name)
-  (string->symbol
-    (string-append (symbol->string name)
-                   (number->string (new-label-number)))))
-;; end of footnote
+(define (c:make-label name) (generate-uninterned-symbol name))
 
 (define (compile-if exp target linkage)
   (let ((t-branch (c:make-label 'true-branch))
-        (f-branch (c:make-label 'false-branch))                    
+        (f-branch (c:make-label 'false-branch))
         (after-if (c:make-label 'after-if)))
     (let ((consequent-linkage
            (if (eq? linkage 'next) after-if linkage)))
@@ -138,15 +144,21 @@
             (a-code
              (compile (if-alternative exp) target linkage)))
         (preserving '(env continue)
-         p-code
-         (append-instruction-sequences
-          (make-instruction-sequence '(val) '()
-           `((test (op false?) (reg val))
-             (branch (label ,f-branch))))
-          (parallel-instruction-sequences
-           (append-instruction-sequences t-branch c-code)
-           (append-instruction-sequences f-branch a-code))
-          after-if))))))
+                    p-code
+                    (append-instruction-sequences
+                     (make-instruction-sequence
+                      '(val) '()
+                      `((test (op false?) (reg val))
+                        (branch (label ,f-branch))))
+                     (parallel-instruction-sequences
+                      (append-instruction-sequences t-branch c-code)
+                      (append-instruction-sequences f-branch a-code))
+                     after-if))))))
+
+(define-generic-procedure-handler
+  compile
+  (match-args (special-form-predicate 'if) c:target? c:linkage?)
+  compile-if)
 
 ;;; sequences
 
@@ -154,8 +166,13 @@
   (if (last-exp? seq)
       (compile (first-exp seq) target linkage)
       (preserving '(env continue)
-       (compile (first-exp seq) target 'next)
-       (compile-sequence (rest-exps seq) target linkage))))
+                  (compile (first-exp seq) target 'next)
+                  (compile-sequence (rest-exps seq) target linkage))))
+
+(define-generic-procedure-handler
+  compile
+  (match-args (special-form-predicate 'begin) c:target? c:linkage?)
+  compile-sequence)
 
 ;;;lambda expressions
 
@@ -166,8 +183,10 @@
            (if (eq? linkage 'next) after-lambda linkage)))
       (append-instruction-sequences
        (tack-on-instruction-sequence
-        (end-with-linkage lambda-linkage
-         (make-instruction-sequence '(env) (list target)
+        (end-with-linkage
+         lambda-linkage
+         (make-instruction-sequence
+          '(env) (list target)
           `((assign ,target
                     (op make-compiled-procedure)
                     (label ,proc-entry)
@@ -175,10 +194,16 @@
         (compile-lambda-body exp proc-entry))
        after-lambda))))
 
+(define-generic-procedure-handler
+  compile
+  (match-args (special-form-predicate 'lambda) c:target? c:linkage?)
+  compile-lambda)
+
 (define (compile-lambda-body exp proc-entry)
   (let ((formals (lambda-parameters exp)))
     (append-instruction-sequences
-     (make-instruction-sequence '(env proc argl) '(env)
+     (make-instruction-sequence
+      '(env proc argl) '(env)
       `(,proc-entry
         (assign env (op compiled-procedure-env) (reg proc))
         (assign env
@@ -187,7 +212,6 @@
                 (reg argl)
                 (reg env))))
      (compile-sequence (lambda-body exp) 'val 'return))))
-
 
 ;;;SECTION 5.5.3
 
@@ -199,42 +223,44 @@
          (map (lambda (operand) (compile operand 'val 'next))
               (operands exp))))
     (preserving '(env continue)
-     proc-code
-     (preserving '(proc continue)
-      (construct-arglist operand-codes)
-      (compile-procedure-call target linkage)))))
+                proc-code
+                (preserving '(proc continue)
+                            (construct-arglist operand-codes)
+                            (compile-procedure-call target linkage)))))
 
 (define (construct-arglist operand-codes)
   (let ((operand-codes (reverse operand-codes)))
     (if (null? operand-codes)
         (make-instruction-sequence '() '(argl)
-         '((assign argl (const ()))))
+                                   '((assign argl (const ()))))
         (let ((code-to-get-last-arg
                (append-instruction-sequences
                 (car operand-codes)
-                (make-instruction-sequence '(val) '(argl)
+                (make-instruction-sequence
+                 '(val) '(argl)
                  '((assign argl (op list) (reg val)))))))
           (if (null? (cdr operand-codes))
               code-to-get-last-arg
               (preserving '(env)
-               code-to-get-last-arg
-               (code-to-get-rest-args
-                (cdr operand-codes))))))))
+                          code-to-get-last-arg
+                          (code-to-get-rest-args
+                           (cdr operand-codes))))))))
 
 (define (code-to-get-rest-args operand-codes)
   (let ((code-for-next-arg
          (preserving '(argl)
-          (car operand-codes)
-          (make-instruction-sequence '(val argl) '(argl)
-           '((assign argl
-              (op cons) (reg val) (reg argl)))))))
+                     (car operand-codes)
+                     (make-instruction-sequence
+                      '(val argl) '(argl)
+                      '((assign argl
+                                (op cons) (reg val) (reg argl)))))))
     (if (null? (cdr operand-codes))
         code-for-next-arg
         (preserving '(env)
-         code-for-next-arg
-         (code-to-get-rest-args (cdr operand-codes))))))
+                    code-for-next-arg
+                    (code-to-get-rest-args (cdr operand-codes))))))
 
-;;;applying procedures
+;;; Applying procedures
 
 (define (compile-procedure-call target linkage)
   (let ((primitive-branch (c:make-label 'primitive-branch))
@@ -243,7 +269,8 @@
     (let ((compiled-linkage
            (if (eq? linkage 'next) after-call linkage)))
       (append-instruction-sequences
-       (make-instruction-sequence '(proc) '()
+       (make-instruction-sequence
+        '(proc) '()
         `((test (op primitive-procedure?) (reg proc))
           (branch (label ,primitive-branch))))
        (parallel-instruction-sequences
@@ -252,9 +279,11 @@
          (compile-proc-appl target compiled-linkage))
         (append-instruction-sequences
          primitive-branch
-         (end-with-linkage linkage
-          (make-instruction-sequence '(proc argl)
-                                     (list target)
+         (end-with-linkage
+          linkage
+          (make-instruction-sequence
+           '(proc argl)
+           (list target)
            `((assign ,target
                      (op apply-primitive-procedure)
                      (reg proc)
@@ -265,26 +294,29 @@
 
 (define (compile-proc-appl target linkage)
   (cond ((and (eq? target 'val) (not (eq? linkage 'return)))
-         (make-instruction-sequence '(proc) all-regs
-           `((assign continue (label ,linkage))
-             (assign val (op compiled-procedure-entry)
-                         (reg proc))
-             (goto (reg val)))))
+         (make-instruction-sequence
+          '(proc) all-regs
+          `((assign continue (label ,linkage))
+            (assign val (op compiled-procedure-entry)
+                    (reg proc))
+            (goto (reg val)))))
         ((and (not (eq? target 'val))
               (not (eq? linkage 'return)))
          (let ((proc-return (c:make-label 'proc-return)))
-           (make-instruction-sequence '(proc) all-regs
+           (make-instruction-sequence
+            '(proc) all-regs
             `((assign continue (label ,proc-return))
               (assign val (op compiled-procedure-entry)
-                          (reg proc))
+                      (reg proc))
               (goto (reg val))
               ,proc-return
               (assign ,target (reg val))
               (goto (label ,linkage))))))
         ((and (eq? target 'val) (eq? linkage 'return))
-         (make-instruction-sequence '(proc continue) all-regs
+         (make-instruction-sequence
+          '(proc continue) all-regs
           '((assign val (op compiled-procedure-entry)
-                        (reg proc))
+                    (reg proc))
             (goto (reg val)))))
         ((and (not (eq? target 'val)) (eq? linkage 'return))
          (error "return linkage, target not val -- COMPILE"
@@ -292,10 +324,6 @@
 
 ;; footnote
 (define all-regs '(env proc val argl continue))
-
-;;; expanded syntax
-(define (compile-enriched-symbol exp target linkage)
-  (compile (enriched-symbol-base exp) target linkage))
 
 ;;;SECTION 5.5.4
 
@@ -313,7 +341,6 @@
 
 (define (modifies-register? seq reg)
   (memq reg (registers-modified seq)))
-
 
 (define (append-instruction-sequences . seqs)
   (define (append-2-sequences seq1 seq2)
@@ -349,15 +376,15 @@
         (if (and (needs-register? seq2 first-reg)
                  (modifies-register? seq1 first-reg))
             (preserving (cdr regs)
-             (make-instruction-sequence
-              (list-union (list first-reg)
-                          (registers-needed seq1))
-              (list-difference (registers-modified seq1)
-                               (list first-reg))
-              (append `((save ,first-reg))
-                      (statements seq1)
-                      `((restore ,first-reg))))
-             seq2)
+                        (make-instruction-sequence
+                         (list-union (list first-reg)
+                                     (registers-needed seq1))
+                         (list-difference (registers-modified seq1)
+                                          (list first-reg))
+                         (append `((save ,first-reg))
+                                 (statements seq1)
+                                 `((restore ,first-reg))))
+                        seq2)
             (preserving (cdr regs) seq1 seq2)))))
 
 (define (tack-on-instruction-sequence seq body-seq)
@@ -373,5 +400,3 @@
    (list-union (registers-modified seq1)
                (registers-modified seq2))
    (append (statements seq1) (statements seq2))))
-
-'(COMPILER LOADED)
