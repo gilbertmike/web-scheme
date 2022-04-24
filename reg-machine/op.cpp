@@ -14,6 +14,7 @@
 
 #include <algorithm>
 
+#include "compiled-proc.h"
 #include "env.h"
 #include "primitive-procs.h"
 
@@ -127,6 +128,37 @@ struct apply_primitive_procedure_op_t : op_t {
 };
 
 op_t* apply_primitive_procedure_op = new apply_primitive_procedure_op_t;
+
+struct make_compiled_procedure_op_t : op_t {
+  value_t execute(const arg_list_t& args) {
+    assert(args.size() == 2);
+    label_t entry = args.at(0).as<label_t>();
+    env_t* env = args.at(1).as<env_t*>();
+    return new compiled_procedure_t(entry, env);
+  }
+};
+
+op_t* make_compiled_procedure_op = new make_compiled_procedure_op_t;
+
+struct compiled_procedure_env_op_t : op_t {
+  value_t execute(const arg_list_t& args) {
+    assert(args.size() == 1);
+    auto proc = args.at(0).as<compiled_procedure_t*>();
+    return proc->env;
+  }
+};
+
+op_t* compiled_procedure_env_op = new compiled_procedure_env_op_t;
+
+struct compiled_procedure_entry_op_t : op_t {
+  value_t execute(const arg_list_t& args) {
+    assert(args.size() == 1);
+    auto proc = args.at(0).as<compiled_procedure_t*>();
+    return proc->entry;
+  }
+};
+
+op_t* compiled_procedure_entry_op = new compiled_procedure_entry_op_t;
 
 struct extend_environment_op_t : op_t {
   value_t execute(const arg_list_t& args) {

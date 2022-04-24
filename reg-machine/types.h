@@ -18,11 +18,10 @@
 
 #include "gc.h"
 
-struct primitive_procedure_t;
-
+struct compiled_procedure_t;
 struct env_t;
-
 struct pair_t;
+struct primitive_procedure_t;
 
 struct quoted_t {
   std::string value;
@@ -39,8 +38,8 @@ bool operator==(const unassigned_t&, const unassigned_t&);
 
 // variables contain pointer to an object
 struct value_t {
-  std::variant<primitive_procedure_t*, env_t*, pair_t*, quoted_t, label_t,
-               int64_t, bool, unassigned_t>
+  std::variant<compiled_procedure_t*, env_t*, primitive_procedure_t*, pair_t*,
+               quoted_t, label_t, int64_t, bool, unassigned_t>
       value;
 
   value_t();
