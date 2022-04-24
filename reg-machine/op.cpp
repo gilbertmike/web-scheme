@@ -59,6 +59,15 @@ struct int_eq_op_t : op_t {
 
 op_t* int_eq_op = new int_eq_op_t;
 
+struct pair_test_op_t : op_t {
+  value_t execute(const arg_list_t& args) {
+    assert(args.size() == 1);
+    return args.at(0).has<pair_t*>();
+  }
+};
+
+op_t* pair_test_op = new pair_test_op_t;
+
 struct cons_op_t : op_t {
   value_t execute(const arg_list_t& args) {
     assert(args.size() == 2);
@@ -87,3 +96,10 @@ struct cdr_op_t : op_t {
 };
 
 op_t* cdr_op = new cdr_op_t;
+
+struct apply_primitive_procedure_op_t : op_t {
+  value_t execute(const arg_list_t& args) {
+    assert(args.size() == 2);
+    return args.at(0).as<primitive_procedure_t*>()->execute(args.at(1));
+  }
+};
