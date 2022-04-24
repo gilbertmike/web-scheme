@@ -1,3 +1,13 @@
+/**
+ * @file parser.cpp
+ * @author Michael Gilbert (gilbertm@mit.edu)
+ * @brief Parser and assembler implementation.
+ * @version 0.1
+ * @date 2022-04-24
+ *
+ * @copyright Copyright (c) 2022
+ *
+ */
 #include "parser.h"
 
 #include <assert.h>
@@ -405,8 +415,8 @@ value_t parse_object(token_list_t::iterator& it) {
       ++it;
     }
     obj = pair_t::make_list(vals);
-  } else {
-    throw std::runtime_error("error parsing object");
+  } else {  // everything else is interpreted as a symbol
+    obj = quoted_t{.value = it[0]};
   }
   ++it;
   return obj;
