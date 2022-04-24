@@ -13,7 +13,6 @@
 #include <assert.h>
 
 #include <algorithm>
-#include <iostream>
 #include <istream>
 #include <map>
 #include <memory>
@@ -46,9 +45,10 @@ std::vector<instr_t::u_ptr> parse_lines(const token_list_t::iterator& start,
 instr_t::u_ptr parse_assign(token_list_t::iterator& start,
                             const regmap_t& regmap, const labelmap_t& labelmap);
 instr_t::u_ptr parse_perform(token_list_t::iterator& start,
-                             const regmap_t& regmap);
-instr_t::u_ptr parse_test(token_list_t::iterator& start,
-                          const regmap_t& regmap);
+                             const regmap_t& regmap,
+                             const labelmap_t& labelmap);
+instr_t::u_ptr parse_test(token_list_t::iterator& start, const regmap_t& regmap,
+                          const labelmap_t& labelmap);
 branch_instr_t::u_ptr parse_branch(token_list_t::iterator& start,
                                    const labelmap_t& labelmap);
 instr_t::u_ptr parse_goto(token_list_t::iterator& start, const regmap_t& regmap,
@@ -59,7 +59,8 @@ restore_instr_t::u_ptr parse_restore(token_list_t::iterator& start,
                                      const regmap_t& regmap);
 
 std::vector<std::variant<reg_t*, value_t>> parse_operands(
-    token_list_t::iterator& start, const regmap_t& regmap);
+    token_list_t::iterator& start, const regmap_t& regmap,
+    const labelmap_t& labelmap);
 
 value_t parse_object(token_list_t::iterator& start);
 
@@ -172,9 +173,9 @@ std::vector<instr_t::u_ptr> parse_lines(
       if (it[1] == "assign") {
         instr_list.emplace_back(parse_assign(it, regmap, labelmap));
       } else if (it[1] == "perform") {
-        instr_list.emplace_back(parse_perform(it, regmap));
+        instr_list.emplace_back(parse_perform(it, regmap, labelmap));
       } else if (it[1] == "test") {
-        instr_list.emplace_back(parse_test(it, regmap));
+        instr_list.emplace_back(parse_test(it, regmap, labelmap));
       } else if (it[1] == "branch") {
         instr_list.emplace_back(parse_branch(it, labelmap));
       } else if (it[1] == "goto") {
@@ -248,7 +249,7 @@ instr_t::u_ptr parse_assign(token_list_t::iterator& it, const regmap_t& regmap,
     assert(*it == ")");  // (assign dst (op opname *)* args ...)
     ++it;
 
-    auto args = parse_operands(it, regmap);
+    auto args = parse_operands(it, regmap, labelmap);
 
     return std::make_unique<assign_op_instr_t>(
         assign_op_instr_t(dst_ptr, op, std::move(args)));
@@ -258,7 +259,8 @@ instr_t::u_ptr parse_assign(token_list_t::iterator& it, const regmap_t& regmap,
 }
 
 perform_instr_t::u_ptr parse_perform(token_list_t::iterator& it,
-                                     const regmap_t& regmap) {
+                                     const regmap_t& regmap,
+                                     const labelmap_t& labelmap) {
   assert(*it == "(");
   ++it;
   assert(*it == "perform");
@@ -274,14 +276,15 @@ perform_instr_t::u_ptr parse_perform(token_list_t::iterator& it,
   assert(*it == ")");  // (assign dst (op opname *)* args ...)
   ++it;
 
-  auto args = parse_operands(it, regmap);
+  auto args = parse_operands(it, regmap, labelmap);
 
   return std::make_unique<perform_instr_t>(
       perform_instr_t(op, std::move(args)));
 }
 
 test_instr_t::u_ptr parse_test(token_list_t::iterator& it,
-                               const regmap_t& regmap) {
+                               const regmap_t& regmap,
+                               const labelmap_t& labelmap) {
   assert(*it == "(");
   ++it;
   assert(*it == "test");
@@ -297,7 +300,7 @@ test_instr_t::u_ptr parse_test(token_list_t::iterator& it,
   assert(*it == ")");  // (assign dst (op opname *)* args ...)
   ++it;
 
-  auto args = parse_operands(it, regmap);
+  auto args = parse_operands(it, regmap, labelmap);
 
   return std::make_unique<test_instr_t>(test_instr_t(op, std::move(args)));
 }
@@ -370,7 +373,8 @@ restore_instr_t::u_ptr parse_restore(token_list_t::iterator& it,
 }
 
 std::vector<std::variant<reg_t*, value_t>> parse_operands(
-    token_list_t::iterator& it, const regmap_t& regmap) {
+    token_list_t::iterator& it, const regmap_t& regmap,
+    const labelmap_t& labelmap) {
   std::vector<std::variant<reg_t*, value_t>> operands;
 
   assert(*it == "(");
@@ -388,6 +392,9 @@ std::vector<std::variant<reg_t*, value_t>> parse_operands(
         operands.push_back(parse_object(it));
 
         assert(it[0] == ")");  // (const arg *)*
+      } else if (it[1] == "label") {
+        operands.push_back(label_t{.dst = labelmap.at(it[2])});
+        it += 3;
       } else {
         throw std::runtime_error("error parsing operands");
       }
