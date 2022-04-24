@@ -397,6 +397,14 @@ value_t parse_object(token_list_t::iterator& it) {
     obj = static_cast<int64_t>(std::stoll(it[0]));
   } else if (it[0].front() == '#') {
     obj = it[0].at(1) == 'f';
+  } else if (it[0] == "(") {  // quoted list doesn't start with a quote
+    ++it;
+    std::vector<value_t> vals;
+    while (it[0] != ")") {  // TODO: doesn't parse improper list
+      vals.push_back(quoted_t{.value = it[0]});
+      ++it;
+    }
+    obj = pair_t::make_list(vals);
   } else {
     throw std::runtime_error("error parsing object");
   }

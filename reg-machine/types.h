@@ -1,11 +1,14 @@
 #pragma once
 
 #include <cstdint>
+#include <map>
 #include <stdexcept>
 #include <string>
 #include <variant>
 
 #include "gc.h"
+
+struct env_t;
 
 struct pair_t;
 
@@ -56,11 +59,44 @@ struct value_t {
   }
 };
 
+struct env_t : garbage_collected_t {
+  std::map<std::string, value_t> mapping;
+
+  env_t() : mapping() {}
+
+  void extend_environment() {}
+
+  void define_variable(const std::string& varname, value_t value) {
+    mapping.at(varname) = value;
+  }
+
+  value_t lookup_var_value(const std::string& varname) {
+    return mapping.at(varname);
+  }
+
+  void mark_children() {
+    for (auto& [key, value] : mapping) {
+      value.mark_children();
+    }
+  }
+};
+
 struct pair_t : garbage_collected_t {
   value_t car;
   value_t cdr;
 
   pair_t(value_t&& car, value_t&& cdr) : car(car), cdr(cdr) {}
+
+  static pair_t* make_list(std::vector<value_t>& vals) {
+    pair_t* init_pair = new pair_t(unassigned_t(), unassigned_t());
+    pair_t* cur_pair = init_pair;
+    for (auto& val : vals) {
+      cur_pair->car = val;
+      cur_pair->cdr = new pair_t(unassigned_t(), unassigned_t());
+      cur_pair = cur_pair->cdr.as<pair_t*>();
+    }
+    return init_pair;
+  }
 
   void mark_children() {
     car.mark_children();
