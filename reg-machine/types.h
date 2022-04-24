@@ -8,6 +8,8 @@
 
 #include "gc.h"
 
+struct primitive_procedure_t;
+
 struct env_t;
 
 struct pair_t;
@@ -27,36 +29,30 @@ bool operator==(const unassigned_t&, const unassigned_t&);
 
 // variables contain pointer to an object
 struct value_t {
-  std::variant<pair_t*, quoted_t, label_t, int64_t, bool, unassigned_t> value;
+  std::variant<primitive_procedure_t*, env_t*, pair_t*, quoted_t, label_t,
+               int64_t, bool, unassigned_t>
+      value;
 
-  value_t() : value(unassigned_t()) {}
-  value_t(const value_t& other) : value(other.value) {}
-  value_t(value_t& other)  // otherwise it's inferred to be the templated
-                           // version
-      : value(other.value) {}
-  value_t(value_t&& other) : value(std::move(other.value)) {}
+  value_t();
+  value_t(const value_t& other);
+  value_t(value_t& other);
+  value_t(value_t&& other);
   template <typename T>
   value_t(T&& val) : value(std::forward<T>(val)) {}
 
-  value_t& operator=(const value_t& other) {
-    value = other.value;
-    return *this;
-  }
+  value_t& operator=(const value_t& other);
 
   template <typename T>
   T as() const {
     return std::get<T>(value);
   }
 
-  void mark_children() {
-    std::visit(
-        [](auto&& arg) {
-          if constexpr (std::is_pointer_v<decltype(arg)>) {
-            arg->mark_children();
-          }
-        },
-        value);
+  template <typename T>
+  bool has() const {
+    return std::holds_alternative<T>(value);
   }
+
+  void mark_children();
 };
 
 struct env_t : garbage_collected_t {
@@ -64,7 +60,7 @@ struct env_t : garbage_collected_t {
 
   env_t() : mapping() {}
 
-  void extend_environment() {}
+  void extend_environment();  // TODO
 
   void define_variable(const std::string& varname, value_t value) {
     mapping.at(varname) = value;

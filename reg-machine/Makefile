@@ -1,5 +1,5 @@
-SRCS = gc.cpp instr.cpp machine.cpp op.cpp types.cpp parser.cpp main.cpp
-HDRS = gc.h instr.h machine.h op.h types.h parser.h
+SRCS = gc.cpp instr.cpp machine.cpp op.cpp types.cpp parser.cpp main.cpp primitive-procs.cpp
+HDRS = gc.h instr.h machine.h op.h types.h parser.h primitive-procs.h
 
 OBJS = $(SRCS:.cpp=.o)
 WASM_OBJS = $(SRCS:.cpp=.owasm)

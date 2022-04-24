@@ -4,6 +4,8 @@
 
 #include <algorithm>
 
+#include "primitive-procs.h"
+
 typedef std::vector<value_t> arg_list_t;
 
 op_t* str_to_op(std::string_view op_str) {
@@ -97,9 +99,20 @@ struct cdr_op_t : op_t {
 
 op_t* cdr_op = new cdr_op_t;
 
+struct primitive_procedure_test_op_t : op_t {
+  value_t execute(const arg_list_t& args) {
+    assert(args.size() == 1);
+    return args.at(0).has<primitive_procedure_t*>();
+  }
+};
+
+op_t* primitive_procedure_test_op = new primitive_procedure_test_op_t;
+
 struct apply_primitive_procedure_op_t : op_t {
   value_t execute(const arg_list_t& args) {
     assert(args.size() == 2);
     return args.at(0).as<primitive_procedure_t*>()->execute(args.at(1));
   }
 };
+
+op_t* apply_primitive_procedure_op = new apply_primitive_procedure_op_t;
