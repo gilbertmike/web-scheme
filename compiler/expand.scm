@@ -369,6 +369,20 @@
             (,name ,@init-vals)))
          env menv)))))
 
+(define (s:expand-let* x env menv)
+  (let ((bindings (s:cadr x))
+        (body (s:cddr x)))
+    (let ((first (s:car bindings))
+          (rest (s:cdr bindings)))
+      (s:expand
+       (s:datum->syntax
+        (if (s:null? rest)
+            `(,(s:core 'let) ,bindings ,@(s:push-down body))
+            `(,(s:core 'let) (,first)
+              (,(s:core 'let*) ,rest ,@(s:push-down body)))))
+       env menv))))
+
+;;;; TODO: this is actually letrec*.
 (define (s:expand-letrec x env menv)
   (let ((bindings (s:cadr x))
         (body (s:cddr x)))
@@ -556,6 +570,7 @@
          (quasiquote . ,(make-binding 'core s:expand-quasiquote))
          (if . ,(make-binding 'core s:expand-if))
          (let . ,(make-binding 'core s:expand-let))
+         (let* . ,(make-binding 'core s:expand-let*))
          (letrec . ,(make-binding 'core s:expand-letrec))
          (letrec* . ,(make-binding 'core s:expand-letrec))
          (define . ,(make-binding 'core s:expand-define))
@@ -580,5 +595,3 @@
   (s:expand (make-syntax-object x s:initial-wrap)
             s:initial-env
             s:initial-env))
-
-
