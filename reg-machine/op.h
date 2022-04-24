@@ -18,7 +18,7 @@ extern op_t* cons_op;
 extern op_t* car_op;
 extern op_t* cdr_op;
 
-extern op_t* primitive_procedure_op;        // TODO
+extern op_t* primitive_procedure_test_op;   // TODO
 extern op_t* apply_primitive_procedure_op;  // TODO
 
 extern op_t* primitive_procedure_test_op;  // TODO
