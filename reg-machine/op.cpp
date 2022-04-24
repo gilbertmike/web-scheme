@@ -1,9 +1,20 @@
+/**
+ * @file op.cpp
+ * @author Michael Gilbert (gilbertm@mit.edu)
+ * @brief Implementation of supported primitive operations.
+ * @version 0.1
+ * @date 2022-04-24
+ *
+ * @copyright Copyright (c) 2022
+ *
+ */
 #include "op.h"
 
 #include <assert.h>
 
 #include <algorithm>
 
+#include "env.h"
 #include "primitive-procs.h"
 
 typedef std::vector<value_t> arg_list_t;
@@ -116,3 +127,41 @@ struct apply_primitive_procedure_op_t : op_t {
 };
 
 op_t* apply_primitive_procedure_op = new apply_primitive_procedure_op_t;
+
+struct extend_environment_op_t : op_t {
+  value_t execute(const arg_list_t& args) {
+    assert(args.size() == 3);
+    pair_t* names = args.at(0).as<pair_t*>();
+    pair_t* values = args.at(1).as<pair_t*>();
+    env_t* env = args.at(2).as<env_t*>();
+    env->extend_environment(names, values);
+    return unassigned_t();
+  }
+};
+
+op_t* extend_environment_op = new extend_environment_op_t;
+
+struct lookup_variable_value_op_t : op_t {
+  value_t execute(const arg_list_t& args) {
+    assert(args.size() == 2);
+    quoted_t name = args.at(0).as<quoted_t>();
+    env_t* env = args.at(1).as<env_t*>();
+    env->lookup_var_value(name);
+    return unassigned_t();
+  }
+};
+
+op_t* lookup_variable_value_op = new lookup_variable_value_op_t;
+
+struct define_variable_op_t : op_t {
+  value_t execute(const arg_list_t& args) {
+    assert(args.size() == 3);
+    quoted_t name = args.at(0).as<quoted_t>();
+    value_t val = args.at(1);
+    env_t* env = args.at(2).as<env_t*>();
+    env->define_variable(name, val);
+    return unassigned_t();
+  }
+};
+
+op_t* define_variable_op = new define_variable_op_t;

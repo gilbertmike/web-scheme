@@ -1,3 +1,13 @@
+/**
+ * @file types.h
+ * @author Michael Gilbert (gilbertm@mit.edu)
+ * @brief Types of objects a register can store.
+ * @version 0.1
+ * @date 2022-04-24
+ *
+ * @copyright Copyright (c) 2022
+ *
+ */
 #pragma once
 
 #include <cstdint>
@@ -53,28 +63,6 @@ struct value_t {
   }
 
   void mark_children();
-};
-
-struct env_t : garbage_collected_t {
-  std::map<std::string, value_t> mapping;
-
-  env_t() : mapping() {}
-
-  void extend_environment();  // TODO
-
-  void define_variable(const std::string& varname, value_t value) {
-    mapping.at(varname) = value;
-  }
-
-  value_t lookup_var_value(const std::string& varname) {
-    return mapping.at(varname);
-  }
-
-  void mark_children() {
-    for (auto& [key, value] : mapping) {
-      value.mark_children();
-    }
-  }
 };
 
 struct pair_t : garbage_collected_t {
