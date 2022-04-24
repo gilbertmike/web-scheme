@@ -21,9 +21,8 @@ extern op_t* cdr_op;
 extern op_t* primitive_procedure_test_op;   // TODO
 extern op_t* apply_primitive_procedure_op;  // TODO
 
-extern op_t* primitive_procedure_test_op;  // TODO
-extern op_t* make_compiled_procedure_op;   // TODO
-extern op_t* compiled_procedure_env_op;    // TODO
+extern op_t* make_compiled_procedure_op;  // TODO
+extern op_t* compiled_procedure_env_op;   // TODO
 
 extern op_t* extend_environment_op;        // TODO
 extern op_t* lookup_variable_value_op;     // TODO
