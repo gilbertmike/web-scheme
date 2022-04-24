@@ -1,3 +1,13 @@
+/**
+ * @file op.h
+ * @author Michael Gilbert (gilbertm@mit.edu)
+ * @brief Supported built-in register machine ops.
+ * @version 0.1
+ * @date 2022-04-24
+ *
+ * @copyright Copyright (c) 2022
+ *
+ */
 #pragma once
 
 #include <vector>
@@ -19,8 +29,8 @@ extern op_t* cons_op;
 extern op_t* car_op;
 extern op_t* cdr_op;
 
-extern op_t* primitive_procedure_test_op;   // TODO
-extern op_t* apply_primitive_procedure_op;  // TODO
+extern op_t* primitive_procedure_test_op;
+extern op_t* apply_primitive_procedure_op;
 
 extern op_t* make_compiled_procedure_op;  // TODO
 extern op_t* compiled_procedure_env_op;   // TODO
