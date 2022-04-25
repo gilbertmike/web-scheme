@@ -14,9 +14,12 @@
 
 env_t::env_t() : mapping() {}
 
-void env_t::extend_environment(pair_t* names, pair_t* values) {
+env_t::env_t(const env_t& other) : mapping(other.mapping) {}
+
+env_t* env_t::extend_environment(pair_t* names, pair_t* values) {
+  env_t* extended_env = new env_t(*this);
   while (true) {
-    define_variable(names->car.as<quoted_t>(), values->car);
+    extended_env->define_variable(names->car.as<quoted_t>(), values->car);
     if (names->cdr.has<pair_t*>()) {
       names = names->cdr.as<pair_t*>();
       values = values->cdr.as<pair_t*>();
@@ -24,10 +27,11 @@ void env_t::extend_environment(pair_t* names, pair_t* values) {
       break;
     }
   }
+  return extended_env;
 }
 
 void env_t::define_variable(const quoted_t& varname, const value_t& value) {
-  mapping.at(varname.value) = value;
+  mapping.insert_or_assign(varname.value, value);
 }
 
 value_t env_t::lookup_var_value(const quoted_t& varname) {

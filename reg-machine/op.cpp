@@ -27,15 +27,38 @@ op_t* str_to_op(std::string_view op_str) {
     return sub_op;
   } else if (op_str == "=") {
     return int_eq_op;
+  } else if (op_str == "true?") {
+    return true_test_op;
+  } else if (op_str == "false?") {
+    return false_test_op;
   } else if (op_str == "cons") {
     return cons_op;
   } else if (op_str == "car") {
     return car_op;
   } else if (op_str == "cdr") {
     return cdr_op;
+  } else if (op_str == "list") {
+    return list_op;
+  } else if (op_str == "primitive-procedure?") {
+    return primitive_procedure_test_op;
+  } else if (op_str == "apply-primitive-procedure") {
+    return apply_primitive_procedure_op;
+  } else if (op_str == "make-compiled-procedure") {
+    return make_compiled_procedure_op;
+  } else if (op_str == "compiled-procedure-env") {
+    return compiled_procedure_env_op;
+  } else if (op_str == "compiled-procedure-entry") {
+    return compiled_procedure_entry_op;
+  } else if (op_str == "extend-environment") {
+    return extend_environment_op;
+  } else if (op_str == "lookup-variable-value") {
+    return lookup_variable_value_op;
+  } else if (op_str == "set-variable-value!") {
+    return define_variable_op;
   }
 
-  throw std::runtime_error("unknown primitive operation");
+  throw std::runtime_error(
+      std::string("unknown primitive operation ").append(op_str));
 }
 
 struct add_op_t : op_t {
@@ -82,6 +105,24 @@ struct pair_test_op_t : op_t {
 
 op_t* pair_test_op = new pair_test_op_t;
 
+struct true_test_op_t : op_t {
+  value_t execute(const arg_list_t& args) {
+    assert(args.size() == 1);
+    return args.at(0).as<bool>();
+  }
+};
+
+op_t* true_test_op = new true_test_op_t;
+
+struct false_test_op_t : op_t {
+  value_t execute(const arg_list_t& args) {
+    assert(args.size() == 1);
+    return !args.at(0).as<bool>();
+  }
+};
+
+op_t* false_test_op = new false_test_op_t;
+
 struct cons_op_t : op_t {
   value_t execute(const arg_list_t& args) {
     assert(args.size() == 2);
@@ -110,6 +151,12 @@ struct cdr_op_t : op_t {
 };
 
 op_t* cdr_op = new cdr_op_t;
+
+struct list_op_t : op_t {
+  value_t execute(const arg_list_t& args) { return pair_t::make_list(args); }
+};
+
+op_t* list_op = new list_op_t;
 
 struct primitive_procedure_test_op_t : op_t {
   value_t execute(const arg_list_t& args) {
@@ -166,8 +213,7 @@ struct extend_environment_op_t : op_t {
     pair_t* names = args.at(0).as<pair_t*>();
     pair_t* values = args.at(1).as<pair_t*>();
     env_t* env = args.at(2).as<env_t*>();
-    env->extend_environment(names, values);
-    return unassigned_t();
+    return env->extend_environment(names, values);
   }
 };
 
@@ -178,8 +224,7 @@ struct lookup_variable_value_op_t : op_t {
     assert(args.size() == 2);
     quoted_t name = args.at(0).as<quoted_t>();
     env_t* env = args.at(1).as<env_t*>();
-    env->lookup_var_value(name);
-    return unassigned_t();
+    return env->lookup_var_value(name);
   }
 };
 

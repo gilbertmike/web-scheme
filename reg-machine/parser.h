@@ -15,4 +15,5 @@
 
 #include "instr.h"
 
-machine_t parse(std::istream& is);
+machine_t parse(std::istream& is,
+                const std::map<std::string, value_t>& predefined_regs);

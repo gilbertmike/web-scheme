@@ -68,15 +68,21 @@ struct pair_t : garbage_collected_t {
   value_t car;
   value_t cdr;
 
+  pair_t() : car(unassigned_t()), cdr(unassigned_t()) {}
   pair_t(value_t&& car, value_t&& cdr) : car(car), cdr(cdr) {}
 
-  static pair_t* make_list(std::vector<value_t>& vals) {
-    pair_t* init_pair = new pair_t(unassigned_t(), unassigned_t());
+  static pair_t* make_list(const std::vector<value_t>& vals) {
+    pair_t* init_pair = new pair_t;
+    if (vals.size() < 1) {
+      return init_pair;
+    }
+
     pair_t* cur_pair = init_pair;
-    for (auto& val : vals) {
-      cur_pair->car = val;
-      cur_pair->cdr = new pair_t(unassigned_t(), unassigned_t());
+    cur_pair->car = vals.at(0);
+    for (auto it = vals.begin() + 1; it != vals.end(); ++it) {
+      cur_pair->cdr = new pair_t;
       cur_pair = cur_pair->cdr.as<pair_t*>();
+      cur_pair->car = *it;
     }
     return init_pair;
   }

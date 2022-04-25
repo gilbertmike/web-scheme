@@ -30,7 +30,8 @@ typedef std::vector<std::string> token_list_t;
 token_list_t tokenize(std::istream& is);
 
 machine_t parse(const token_list_t::iterator& start,
-                const token_list_t::iterator& end);
+                const token_list_t::iterator& end,
+                const std::map<std::string, value_t>& regs);
 
 std::map<std::string, uintptr_t> parse_reg_decl(token_list_t::iterator& start);
 
@@ -66,9 +67,9 @@ value_t parse_object(token_list_t::iterator& start);
 
 void skip_whitespace(std::istream& is);
 
-machine_t parse(std::istream& is) {
+machine_t parse(std::istream& is, const std::map<std::string, value_t>& regs) {
   auto token_list = tokenize(is);
-  return parse(token_list.begin(), token_list.end());
+  return parse(token_list.begin(), token_list.end(), regs);
 }
 
 token_list_t tokenize(std::istream& is) {
@@ -83,7 +84,7 @@ token_list_t tokenize(std::istream& is) {
       tokens.push_back(")");
     } else {
       std::string token;
-      while (c != ')' && c != '(' && !std::isspace(c)) {
+      while (c != ')' && c != '(' && !std::isspace(c) && c != EOF) {
         token.push_back(c);
         c = is.get();
       }
@@ -100,18 +101,23 @@ token_list_t tokenize(std::istream& is) {
 }
 
 machine_t parse(const token_list_t::iterator& tokens,
-                const token_list_t::iterator& end) {
+                const token_list_t::iterator& end,
+                const std::map<std::string, value_t>& regs) {
   // this moves program_start to after register declaration
   auto program_start = tokens;
-  auto regmap_idx = parse_reg_decl(program_start);
 
   auto labelmap = parse_labels(program_start, end);
+  for (auto& [key, value] : labelmap) {
+  }
 
-  machine_t machine(regmap_idx.size());
+  machine_t machine(regs.size());
 
   regmap_t regmap;
-  for (const auto& [key, value] : regmap_idx) {
-    regmap.insert({key, &machine.rfile[value]});
+  int idx = 0;
+  for (const auto& [key, value] : regs) {
+    machine.rfile[idx].set(value);
+    regmap.insert({key, &machine.rfile[idx]});
+    ++idx;
   }
 
   auto instr_list = parse_lines(program_start, end, regmap, labelmap);
@@ -159,6 +165,7 @@ std::map<std::string, uintptr_t> parse_labels(
       labelmap.insert({*it, pc});
     }
   }
+  labelmap.insert({"halt", pc});
 
   return labelmap;
 }
@@ -185,7 +192,8 @@ std::vector<instr_t::u_ptr> parse_lines(
       } else if (it[1] == "restore") {
         instr_list.emplace_back(parse_restore(it, regmap));
       } else {
-        throw std::runtime_error("error parsing instruction");
+        throw std::runtime_error(
+            std::string("error parsing instruction: ").append(it[1]));
       }
     } else {
       /* do nothing */
@@ -337,7 +345,7 @@ instr_t::u_ptr parse_goto(token_list_t::iterator& it, const regmap_t& regmap,
     auto labelname = it[4];
     auto label = labelmap.at(labelname);
 
-    it += 7;
+    it += 6;
 
     return std::make_unique<goto_label_instr_t>(
         goto_label_instr_t(label_t{label}));
@@ -354,7 +362,7 @@ save_instr_t::u_ptr parse_save(token_list_t::iterator& it,
   auto regname = it[2];
   auto reg = regmap.at(regname);
 
-  it += 4;
+  it += 3;
 
   return std::make_unique<save_instr_t>(save_instr_t(reg));
 }
@@ -367,7 +375,7 @@ restore_instr_t::u_ptr parse_restore(token_list_t::iterator& it,
   auto regname = it[2];
   auto reg = regmap.at(regname);
 
-  it += 4;
+  it += 3;
 
   return std::make_unique<restore_instr_t>(restore_instr_t(reg));
 }

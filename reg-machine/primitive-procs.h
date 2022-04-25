@@ -16,14 +16,7 @@ struct primitive_procedure_t {
   virtual value_t execute(const value_t& args) = 0;
 };
 
-struct add_procedure_t : primitive_procedure_t {
-  value_t execute(const value_t& args) override;
-};
-
-struct sub_procedure_t : primitive_procedure_t {
-  value_t execute(const value_t& args) override;
-};
-
-struct mul_procedure_t : primitive_procedure_t {
-  value_t execute(const value_t& args) override;
-};
+extern primitive_procedure_t* add_primitive_proc;
+extern primitive_procedure_t* sub_primitive_proc;
+extern primitive_procedure_t* mul_primitive_proc;
+extern primitive_procedure_t* int_eq_primitive_proc;
