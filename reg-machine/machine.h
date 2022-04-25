@@ -16,8 +16,13 @@ class reg_t {
 
   value_t get() const;
 
+  void set_name(const std::string& name);
+
+  std::string_view get_name() const;
+
  private:
   value_t value;
+  std::string name = "[unnamed]";
 };
 
 class stack_t {

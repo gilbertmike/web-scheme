@@ -10,6 +10,10 @@ void reg_t::set(const value_t& new_value) { value = new_value; }
 
 value_t reg_t::get() const { return value; }
 
+void reg_t::set_name(const std::string& name) { this->name = name; }
+
+std::string_view reg_t::get_name() const { return name; }
+
 stack_t::stack_t() {}
 
 void stack_t::push(const value_t& value) { stack.emplace(value); }

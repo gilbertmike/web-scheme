@@ -116,6 +116,7 @@ machine_t parse(const token_list_t::iterator& tokens,
   int idx = 0;
   for (const auto& [key, value] : regs) {
     machine.rfile[idx].set(value);
+    machine.rfile[idx].set_name(key);
     regmap.insert({key, &machine.rfile[idx]});
     ++idx;
   }
