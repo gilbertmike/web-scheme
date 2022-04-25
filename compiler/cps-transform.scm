@@ -154,7 +154,9 @@
 (define (k:lambda-application? expr)
   (and (pair? expr)
        (pair? (car expr))
-       (enriched-symbol-base=? (caar expr) 'lambda)))
+       (enriched-symbol-base=? (caar expr) 'lambda)
+       ;; Right now only handles the case where the parameter is a proper list.
+       (list? (cadar expr))))
 
 (define-generic-procedure-handler k:cps
   (match-args k:lambda-application? k:continuation?)
