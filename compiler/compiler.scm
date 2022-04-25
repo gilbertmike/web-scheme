@@ -169,10 +169,13 @@
                   (compile (first-exp seq) target 'next)
                   (compile-sequence (rest-exps seq) target linkage))))
 
+(define (compile-begin expr target linkage)
+  (compile-sequence (begin-actions expr) target linkage))
+
 (define-generic-procedure-handler
   compile
   (match-args (special-form-predicate 'begin) c:target? c:linkage?)
-  compile-sequence)
+  compile-begin)
 
 ;;;lambda expressions
 
