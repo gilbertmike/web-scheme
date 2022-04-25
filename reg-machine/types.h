@@ -13,6 +13,7 @@
 #include <cassert>
 #include <cstdint>
 #include <map>
+#include <ostream>
 #include <stdexcept>
 #include <string>
 #include <variant>
@@ -61,6 +62,8 @@ struct value_t {
   bool has() const {
     return std::holds_alternative<T>(value);
   }
+
+  friend std::ostream& operator<<(std::ostream& out, value_t& value);
 
   void mark_children();
 };
