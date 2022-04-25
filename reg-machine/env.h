@@ -17,7 +17,7 @@ class env_t : garbage_collected_t {
   env_t();
   env_t(const env_t& other);
 
-  env_t* extend_environment(pair_t* names, pair_t* values);
+  env_t* extend_environment(const value_t& names, pair_t* values);
 
   void define_variable(const quoted_t& varname, const value_t& value);
 

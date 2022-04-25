@@ -10,6 +10,7 @@
  */
 #pragma once
 
+#include <cassert>
 #include <cstdint>
 #include <map>
 #include <stdexcept>
@@ -84,6 +85,21 @@ struct pair_t : garbage_collected_t {
       cur_pair = cur_pair->cdr.as<pair_t*>();
       cur_pair->car = *it;
     }
+    return init_pair;
+  }
+
+  static pair_t* make_improper_list(const std::vector<value_t>& vals,
+                                    const value_t& end) {
+    assert(!vals.empty());
+    pair_t* init_pair = new pair_t;
+    pair_t* cur_pair = init_pair;
+    cur_pair->car = vals.at(0);
+    for (auto it = vals.begin() + 1; it != vals.end(); ++it) {
+      cur_pair->cdr = new pair_t;
+      cur_pair = cur_pair->cdr.as<pair_t*>();
+      cur_pair->car = *it;
+    }
+    cur_pair->cdr = end;
     return init_pair;
   }
 

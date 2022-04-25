@@ -425,11 +425,18 @@ value_t parse_object(token_list_t::iterator& it) {
   } else if (it[0] == "(") {  // quoted list doesn't start with a quote
     ++it;
     std::vector<value_t> vals;
-    while (it[0] != ")") {  // TODO: doesn't parse improper list
-      vals.push_back(quoted_t{.value = it[0]});
-      ++it;
+    while (it[0] != ")" && it[0] != ".") { 
+      vals.push_back(parse_object(it));
     }
-    obj = pair_t::make_list(vals);
+    if (it[0] == ")") {
+      obj = pair_t::make_list(vals);
+    } else {
+      ++it;
+      assert(it[0] != ")");
+      value_t end = parse_object(it);
+      assert(it[0] == ")");
+      obj = pair_t::make_improper_list(vals, end);
+    }
   } else {  // everything else is interpreted as a symbol
     obj = quoted_t{.value = it[0]};
   }

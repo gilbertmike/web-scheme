@@ -10,21 +10,31 @@
  */
 #include "env.h"
 
+#include <cassert>
 #include <string>
 
 env_t::env_t() : mapping() {}
 
 env_t::env_t(const env_t& other) : mapping(other.mapping) {}
 
-env_t* env_t::extend_environment(pair_t* names, pair_t* values) {
+env_t* env_t::extend_environment(const value_t& names, pair_t* values) {
   env_t* extended_env = new env_t(*this);
-  while (true) {
-    extended_env->define_variable(names->car.as<quoted_t>(), values->car);
-    if (names->cdr.has<pair_t*>()) {
-      names = names->cdr.as<pair_t*>();
-      values = values->cdr.as<pair_t*>();
-    } else {
-      break;
+  if (!names.has<pair_t*>()) [[unlikely]] {
+    assert(names.has<quoted_t>());
+    extended_env->define_variable(names.as<quoted_t>(), values);
+  } else {
+    pair_t* list = names.as<pair_t*>();
+    while (true) {
+      extended_env->define_variable(list->car.as<quoted_t>(), values->car);
+      if (list->cdr.has<pair_t*>()) {
+        list = list->cdr.as<pair_t*>();
+        values = values->cdr.as<pair_t*>();
+      } else {
+        if (list->cdr.has<quoted_t>()) [[unlikely]] {
+          extended_env->define_variable(list->cdr.as<quoted_t>(), values->cdr);
+        }
+        break;
+      }
     }
   }
   return extended_env;

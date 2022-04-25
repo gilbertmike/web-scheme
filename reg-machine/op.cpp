@@ -210,7 +210,7 @@ op_t* compiled_procedure_entry_op = new compiled_procedure_entry_op_t;
 struct extend_environment_op_t : op_t {
   value_t execute(const arg_list_t& args) {
     assert(args.size() == 3);
-    pair_t* names = args.at(0).as<pair_t*>();
+    const value_t& names = args.at(0);
     pair_t* values = args.at(1).as<pair_t*>();
     env_t* env = args.at(2).as<env_t*>();
     return env->extend_environment(names, values);
