@@ -15,7 +15,13 @@
 
 (define (text-of-quotation exp) (cadr exp))
 
-(define (assignment-variable exp) (cadr exp))
+(define (assignment-variable exp)
+  (cond ((symbol? (cadr exp))
+         (cadr exp))
+        ((enriched-symbol? (cadr exp))
+         (enriched-symbol-base (cadr exp)))
+	      (else
+         (error "Syntax error: set!" exp))))
 
 (define (assignment-value exp) (caddr exp))
 
@@ -36,11 +42,12 @@
          (error "Syntax error: define" exp))))
 
 (define (lambda-parameters exp)
-  (map (lambda (p)
-         (if (enriched-symbol? p)
-             (enriched-symbol-base p)
-             p))
-       (cadr exp)))
+  (let loop ((rest (cadr exp)))
+    (cond ((null? rest) '())
+          ((pair? rest)
+           (cons (enriched-symbol-base (car rest))
+                 (loop (cdr rest))))
+          (else (enriched-symbol-base rest)))))
 
 (define (lambda-body exp) (cddr exp))
 
