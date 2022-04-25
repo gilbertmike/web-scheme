@@ -20,15 +20,16 @@
   (let* ((expanded (syntactic-expand program))
          (cps-ed (if cps? (cps-transform expanded) expanded))
          (compiled (compile cps-ed 'val 'halt)))
-    (pp (caddr compiled) port)))
+    (for-each (lambda (instr)
+                (pp instr port))
+              (caddr compiled))))
 
 #|
 (compile-to
  '(letrec ((fact
             (lambda (n)
-              (if (= n 0)
-                  1
-                  (* n (fact (- n 1)))))))
-    (fact 1))
+              (if (= n 0) 1 (* n (fact (- n 1)))))))
+    (fact 4))
  #f (current-output-port))
 |#
+
