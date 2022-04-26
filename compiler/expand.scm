@@ -432,7 +432,8 @@
 (define (s:expand-cond x env menv)
   (let ((clauses (s:cdr x)))
     (if (s:null? clauses)
-        `#!unspecific
+        '#f
+        ;; `#!unspecific
         (let ((first (s:car clauses)))
           (let ((first-predicate (s:car first))
                 (first-consequence
@@ -469,20 +470,20 @@
                       x)))
     (if (and (list? elems)
              (every s:qq-single? elems))
-        `(%list ,@(map s:qq-expr elems))
+        `(list ,@(map s:qq-expr elems))
         (let ((append-args
                (let loop ((rest elems))
                  (cond ((null? rest) '())
                        ((pair? rest)
                         (cons (if (s:qq-single? (car rest))
-                                  `(%list ,(s:qq-expr (car rest)))
+                                  `(list ,(s:qq-expr (car rest)))
                                   (s:qq-expr (car rest)))
                               (loop (cdr rest))))
                        (else (if (s:qq-single? rest)
                                  (list (s:qq-expr rest))
                                  (s:error (s:qq-expr rest)
                                           "inappropriate use of ,@")))))))
-          `(%append ,@append-args)))))
+          `(append ,@append-args)))))
 
 (define (s:expand-qq x d env menv)
   (cond ((s:pair? x)
