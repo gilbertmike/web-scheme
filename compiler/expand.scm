@@ -421,7 +421,7 @@
     `(define ,@(s:expand-exprs (s:cdr x) env menv))))
 
 
-;;;; Expanding cond.
+;;;; Expanding cond and case.
 
 (define (s:else? x env)
   (and (s:identifier? x)
@@ -438,16 +438,41 @@
           (let ((first-predicate (s:car first))
                 (first-consequence
                  ;; Ensure the consequence is a single expression.
-                 `(,(s:core 'begin)
-                   ,@(s:push-down (s:cdr first)))))
+                 (if (s:null? (s:cddr first))
+                     (s:cadr first)
+                     `(,(s:core 'begin)
+                       ,@(s:push-down (s:cdr first))))))
             (if (s:else? first-predicate env)
-                (s:expand (s:datum->syntax first-consequence) env menv)
+                (s:expand first-consequence env menv)
                 (s:expand
                  (s:datum->syntax
                   `(,(s:core 'if) ,first-predicate
                     ,first-consequence
                     (,(s:core 'cond) ,@(s:push-down (s:cdr clauses)))))
                  env menv)))))))
+
+(define (s:expand-case x env menv)
+  (define temp (generate-variable-name 'case-var))
+  (define (case-branch branch)
+    (let ((datum (s:car branch))
+          (body (s:cdr branch)))
+      (cond ((s:else? datum env)
+             `(,datum ,@(s:push-down body)))
+            ((and (s:pair? datum)
+                  (s:null? (s:cdr datum)))
+             `((eq? ,temp (,(s:core 'quote) ,(s:car datum)))
+               ,@(s:push-down body)))
+            (else
+             `((memq ,temp (,(s:core 'quote) ,datum))
+               ,@(s:push-down body))))))
+  (let ((expr (s:cadr x))
+        (cases (s:cddr x)))
+    (s:expand
+     (s:datum->syntax
+      `(,(s:core 'let) ((,temp ,expr))
+        (,(s:core 'cond)
+         ,@(s:map case-branch cases))))
+     env menv)))
 
 
 ;;;; Expanding quasiquotes.
@@ -581,6 +606,7 @@
          (else . ,(make-binding 'core-aux 'else))
          (begin . ,(make-binding 'core s:expand-begin))
          (lambda . ,(make-binding 'core s:expand-lambda))
+         (case . ,(make-binding 'core s:expand-case))
          (cond . ,(make-binding 'core s:expand-cond)))))
   (let ((labels (map (lambda (x) (make-label)) bindings)))
     (set! s:initial-wrap
