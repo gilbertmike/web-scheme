@@ -82,6 +82,15 @@ token_list_t tokenize(std::istream& is) {
       tokens.push_back("(");
     } else if (c == ')') {
       tokens.push_back(")");
+    } else if (c == '\"') {
+      std::string token("\"");
+      c = is.get();
+      while (c != '\"') {
+        token.push_back(c);
+        c = is.get();
+      }
+      token.push_back(c);
+      tokens.push_back(token);
     } else {
       std::string token;
       while (c != ')' && c != '(' && !std::isspace(c) && c != EOF) {
@@ -423,10 +432,12 @@ value_t parse_object(token_list_t::iterator& it) {
     obj = static_cast<int64_t>(std::stoll(it[0]));
   } else if (it[0].front() == '#') {
     obj = it[0].at(1) == 'f';
+  } else if (it[0].front() == '\"') {
+    obj = string_t{.value = it[0].substr(1, it[0].size() - 2)};
   } else if (it[0] == "(") {  // quoted list doesn't start with a quote
     ++it;
     std::vector<value_t> vals;
-    while (it[0] != ")" && it[0] != ".") { 
+    while (it[0] != ")" && it[0] != ".") {
       vals.push_back(parse_object(it));
     }
     if (it[0] == ")") {

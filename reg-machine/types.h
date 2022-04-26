@@ -33,6 +33,10 @@ struct label_t {
   uintptr_t dst;
 };
 
+struct string_t {
+  std::string value;
+};
+
 // unassigned variables
 struct unassigned_t {};
 
@@ -41,7 +45,7 @@ bool operator==(const unassigned_t&, const unassigned_t&);
 // variables contain pointer to an object
 struct value_t {
   std::variant<compiled_procedure_t*, env_t*, primitive_procedure_t*, pair_t*,
-               quoted_t, label_t, int64_t, bool, unassigned_t>
+               string_t, quoted_t, label_t, int64_t, bool, unassigned_t>
       value;
 
   value_t();
