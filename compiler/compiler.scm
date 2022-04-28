@@ -1,9 +1,4 @@
-;;;;COMPILER FROM SECTION 5.5 OF
-;;;; STRUCTURE AND INTERPRETATION OF COMPUTER PROGRAMS
-
-
-;;;SECTION 5.5.1
-
+;;;; The register-machine compiler, from SICP section 5.5
 
 (define (c:expression? exp) #t)
 (define (c:target? reg) (symbol? reg))
@@ -23,9 +18,8 @@
 (define (empty-instruction-sequence)
   (make-instruction-sequence '() '() '()))
 
-;;;SECTION 5.5.2
-
-;;;linkage code
+
+;;; Linkage code.
 
 (define (compile-linkage linkage)
   (cond ((eq? linkage 'return)
@@ -44,7 +38,8 @@
               instruction-sequence
               (compile-linkage linkage)))
 
-;;;simple expressions
+
+;;; Simple expressions.
 
 (define (compile-self-evaluating exp target linkage)
   (end-with-linkage
@@ -127,7 +122,8 @@
   (match-args (special-form-predicate 'define) c:target? c:linkage?)
   compile-definition)
 
-;;;conditional expressions
+
+;;; Conditional expressions.
 
 (define (c:make-label name) (generate-uninterned-symbol name))
 
@@ -160,7 +156,8 @@
   (match-args (special-form-predicate 'if) c:target? c:linkage?)
   compile-if)
 
-;;; sequences
+
+;;; Sequences.
 
 (define (compile-sequence seq target linkage)
   (if (last-exp? seq)
@@ -177,7 +174,7 @@
   (match-args (special-form-predicate 'begin) c:target? c:linkage?)
   compile-begin)
 
-;;;lambda expressions
+;;; Lambda expressions.
 
 (define (compile-lambda exp target linkage)
   (let ((proc-entry (c:make-label 'entry))
@@ -216,9 +213,8 @@
                 (reg env))))
      (compile-sequence (lambda-body exp) 'val 'return))))
 
-;;;SECTION 5.5.3
-
-;;;combinations
+
+;;; Combinations.
 
 (define (compile-application exp target linkage)
   (let ((proc-code (compile (operator exp) 'proc 'next))
@@ -263,7 +259,8 @@
                     code-for-next-arg
                     (code-to-get-rest-args (cdr operand-codes))))))
 
-;;; Applying procedures
+
+;;; Applying procedures.
 
 (define (compile-procedure-call target linkage)
   (let ((primitive-branch (c:make-label 'primitive-branch))
@@ -293,7 +290,7 @@
                      (reg argl)))))))
        after-call))))
 
-;;;applying compiled procedures
+;;; Applying compiled procedures.
 
 (define (compile-proc-appl target linkage)
   (cond ((and (eq? target 'val) (not (eq? linkage 'return)))
@@ -325,10 +322,8 @@
          (error "return linkage, target not val -- COMPILE"
                 target))))
 
-;; footnote
+
 (define all-regs '(env proc val argl continue))
-
-;;;SECTION 5.5.4
 
 (define (registers-needed s)
   (if (symbol? s) '() (car s)))
