@@ -1,5 +1,10 @@
 #include "machine.h"
 
+#include <iostream>
+#include <stack>
+#include <mutex>
+#include <optional>
+
 #include "types.h"
 
 reg_t::reg_t() : value(unassigned_t()) {}
@@ -25,15 +30,16 @@ value_t stack_t::pop() {
 }
 
 machine_t::machine_t(int rfile_size)
-    : pc(label_t{0}), flag(false), instructions(), rfile(rfile_size) {}
+    : pc(label_t{0}), flag(false), instructions(), rfile(rfile_size), output(&std::cout) {}
 
 machine_t::machine_t(int rfile_size, std::vector<instr_t::u_ptr>&& instructions)
     : pc(label_t{0}),
       flag(false),
       instructions(std::move(instructions)),
-      rfile(rfile_size) {}
+      rfile(rfile_size), output(&std::cout) {}
 
 void machine_t::start() {
+  set_current();
   while (true) {
     uintptr_t cur_instr_idx = pc.get().as<label_t>().dst;
     if (cur_instr_idx >= instructions.size()) {
@@ -41,7 +47,26 @@ void machine_t::start() {
     }
 
     pc.set(label_t{cur_instr_idx + 1});
-
     instructions.at(cur_instr_idx)->execute(*this);
   }
+  yield_current();
+}
+
+static machine_t* running = nullptr;
+static std::mutex gil;
+
+machine_t& machine_t::current() {
+  assert(running);
+  return *running;
+}
+
+void machine_t::set_current() {
+  gil.lock();
+  running = this;
+}
+
+void machine_t::yield_current() {
+  assert(this == running);
+  running = nullptr;
+  gil.unlock();
 }

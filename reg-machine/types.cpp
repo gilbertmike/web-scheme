@@ -22,7 +22,7 @@ void value_t::mark_children() {
       value);
 }
 
-void try_print_list(std::ostream& out, pair_t *cur) {
+void try_print_list(std::ostream& out, const pair_t* cur) {
   out << "(";
   while (cur->cdr.has<pair_t*>()) {
     out << cur->car << " ";
@@ -36,7 +36,7 @@ void try_print_list(std::ostream& out, pair_t *cur) {
   }
 }
 
-std::ostream& operator<<(std::ostream& out, value_t& value) {
+std::ostream& operator<<(std::ostream& out, const value_t& value) {
   std::visit(
       [&](auto&& arg) {
         using T = std::decay_t<decltype(arg)>;

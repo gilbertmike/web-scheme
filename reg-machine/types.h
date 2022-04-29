@@ -67,7 +67,8 @@ struct value_t {
     return std::holds_alternative<T>(value);
   }
 
-  friend std::ostream& operator<<(std::ostream& out, value_t& value);
+  friend std::ostream& operator<<(std::ostream& out, const value_t& value);
+  // friend std::ostream& operator<<(std::ostream& out, value_t& value);
 
   void mark_children();
 };

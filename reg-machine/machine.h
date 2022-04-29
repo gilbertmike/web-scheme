@@ -43,11 +43,18 @@ struct machine_t {
 
   static machine_t construct_from_string(std::string_view text);
 
+  static machine_t& current();
+  void set_current();
+  void yield_current();
+
+  void set_output(std::ostream& output) { this->output = &output; }
+
   void start();
 
   reg_t pc;
   reg_t flag;
   stack_t stack;
+  std::ostream* output;
   std::vector<instr_t::u_ptr> instructions;
 
   std::vector<reg_t> rfile;
