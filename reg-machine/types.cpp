@@ -22,6 +22,20 @@ void value_t::mark_children() {
       value);
 }
 
+void try_print_list(std::ostream& out, pair_t *cur) {
+  out << "(";
+  while (cur->cdr.has<pair_t*>()) {
+    out << cur->car << " ";
+    cur = cur->cdr.as<pair_t*>();
+  }
+  out << cur->car;
+  if (cur->cdr.has<unassigned_t>()) {
+    out << ")";
+  } else {
+    out << " . " << cur->cdr;
+  }
+}
+
 std::ostream& operator<<(std::ostream& out, value_t& value) {
   std::visit(
       [&](auto&& arg) {
@@ -31,7 +45,7 @@ std::ostream& operator<<(std::ostream& out, value_t& value) {
         } else if constexpr (std::is_same_v<T, bool>) {
           out << arg;
         } else if constexpr (std::is_same_v<T, pair_t*>) {
-          out << "(" << arg->car << " . " << arg->cdr << ")";
+          try_print_list(out, arg);
         } else if constexpr (std::is_same_v<T, quoted_t>) {
           out << arg.value;
         } else if constexpr (std::is_same_v<T, compiled_procedure_t*>) {
