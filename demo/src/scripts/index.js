@@ -6,6 +6,7 @@ import { Promise } from 'es6-promise';
 const fileInput = document.getElementById('file-input');
 const runBtn = document.getElementById('run');
 const iTextBox = document.getElementById('input');
+const oTextBox = document.getElementById('output');
 
 function readFileContent(file) {
   const reader = new FileReader();
@@ -31,6 +32,6 @@ wasmInterface({
   runBtn.addEventListener('click', function (event) {
     // TODO save the output to the output text box instead of just printing to console
     // This requires a change in main.cpp
-    module.ccall('test_reg_machine', 'none', ['string'], [iTextBox.value]);
+    oTextBox.value = module.ccall('test_reg_machine', 'string', ['string'], [iTextBox.value]);
   });
 });
