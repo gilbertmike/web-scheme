@@ -14,6 +14,7 @@ struct machine_t;
 struct instr_t {
   typedef std::unique_ptr<instr_t> u_ptr;
 
+  virtual ~instr_t() {};
   virtual void execute(machine_t& machine) = 0;
 };
 
