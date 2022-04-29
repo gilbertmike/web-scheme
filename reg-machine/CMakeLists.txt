@@ -8,7 +8,7 @@ add_executable(web_scheme
 
 if(EMSCRIPTEN)
     target_link_options(web_scheme PRIVATE
-        -sMODULARIZE -sWASM=1 -sEXPORTED_RUNTIME_METHODS=ccall,cwrap -sENVIRONMENT=web
+        -O3 -sMODULARIZE -sWASM=1 -sEXPORTED_RUNTIME_METHODS=ccall,cwrap -sENVIRONMENT=web
         -sEXPORT_NAME="wasmInterface")
     add_custom_command(TARGET web_scheme POST_BUILD
         COMMAND "${CMAKE_COMMAND}" -E copy 
