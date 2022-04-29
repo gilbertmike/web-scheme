@@ -3,8 +3,7 @@ import { wasmInterface }  from './web_scheme.js';
 import wasmBytecode from './web_scheme.wasm';
 var Promise = require('es6-promise').Promise;
 
-const fileInput = document.getElementById('fileInput');
-const uploadBtn = document.getElementById('upload');
+const fileInput = document.getElementById('file-input');
 const runBtn = document.getElementById('run');
 const iTextBox = document.getElementById('input');
 
@@ -14,15 +13,15 @@ function readFileContent(file) {
     reader.onload = event => resolve(event.target.result);
     reader.onerror = error => reject(error);
     reader.readAsText(file);
+    console.log("Uploaded " + file.name);
   });
 }
 
-// TODO doesn't work yet, TypeError fileInput is null
-uploadBtn.addEventListener('click', function(event) {
+fileInput.onchange = () => {
   readFileContent(fileInput.files[0]).then(content => {
     iTextBox.value = content;
   }).catch(error => console.log(error));
-});
+};
 
 wasmInterface({
   locateFile(path) {
