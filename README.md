@@ -3,6 +3,19 @@ An implementation of Scheme for WebAssembly.
 
 This project started out as our group project for MIT [6.945](https://groups.csail.mit.edu/mac/users/gjs/6.945/) (Large scale symbolic systems), Spring 2022.
 
+## Running the demo
+
+```
+cd demo
+npm install
+npm run start
+```
+Navigate to http://localhost.8080/.
+
+To use the demo, either upload pre-compiled `.rma` files from the `examples` folder or copy and paste in register machine code.
+
+Press the `Run register machine` button to run the code.
+
 ## Development and building
 
 ### The register machine in C++
