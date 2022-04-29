@@ -1,7 +1,7 @@
 import '../styles/index.scss';
-import { wasmInterface }  from './web_scheme.js';
-import wasmBytecode from './web_scheme.wasm';
-var Promise = require('es6-promise').Promise;
+import wasmBytecode from '../wasm/web_scheme.wasm';
+import { wasmInterface } from '../wasm/web_scheme.js';
+import { Promise } from 'es6-promise';
 
 const fileInput = document.getElementById('file-input');
 const runBtn = document.getElementById('run');
@@ -28,9 +28,9 @@ wasmInterface({
     return path.endsWith('.wasm') ? wasmBytecode : path;
   },
 }).then(module => {
-    runBtn.addEventListener('click', function(event) {
-      // TODO save the output to the output text box instead of just printing to console
-      // This requires a change in main.cpp
-      module.ccall('test_reg_machine', 'none', ['string'], [iTextBox.value]);
-    });
+  runBtn.addEventListener('click', function (event) {
+    // TODO save the output to the output text box instead of just printing to console
+    // This requires a change in main.cpp
+    module.ccall('test_reg_machine', 'none', ['string'], [iTextBox.value]);
+  });
 });

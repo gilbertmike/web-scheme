@@ -13,11 +13,11 @@ if(EMSCRIPTEN)
     add_custom_command(TARGET web_scheme POST_BUILD
         COMMAND "${CMAKE_COMMAND}" -E copy 
             "$<TARGET_FILE_DIR:web_scheme>/web_scheme.js"
-            "${CMAKE_SOURCE_DIR}/../demo/src/scripts/web_scheme.js"
+            "${CMAKE_SOURCE_DIR}/../demo/src/wasm/web_scheme.js"
     )
     add_custom_command(TARGET web_scheme POST_BUILD
         COMMAND "${CMAKE_COMMAND}" -E copy 
             "$<TARGET_FILE_DIR:web_scheme>/web_scheme.wasm"
-            "${CMAKE_SOURCE_DIR}/../demo/src/scripts/web_scheme.wasm"
+            "${CMAKE_SOURCE_DIR}/../demo/src/wasm/web_scheme.wasm"
     )
 endif()
