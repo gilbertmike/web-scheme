@@ -16,3 +16,4 @@
 .vscode
 
 reg-machine/build/**/*
+reg-machine/wasm-build/**/*
