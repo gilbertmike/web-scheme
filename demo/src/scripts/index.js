@@ -34,6 +34,13 @@ wasmInterface({
     return module.allocateUTF8(input);
   }, 'i');
   runBtn.addEventListener('click', function (event) {
-    oTextBox.value = module.ccall('test_reg_machine', 'string', ['string', 'number'], [iTextBox.value, inputCallback]);
+    try {
+      oTextBox.value = module.ccall('test_reg_machine', 'string',
+        ['string', 'number'], [iTextBox.value, inputCallback]);
+    } catch (error) {
+      oTextBox.value = "ERROR: The machine halted unexpectedly!";
+      console.log(error);
+      alert("The register machine halted with error!");
+    }
   });
 });

@@ -13,6 +13,8 @@
 #include <cassert>
 #include <sstream>
 
+#include "compiled-proc.h"
+#include "instr.h"
 #include "machine.h"
 #include "op.h"
 #include "parser.h"
@@ -186,3 +188,56 @@ struct cons_procedure_t : primitive_procedure_t {
 };
 
 primitive_procedure_t* cons_primitive_proc = new cons_procedure_t;
+
+struct error_procedure_t : primitive_procedure_t {
+  value_t execute(const value_t& args) {
+    machine_t& current = machine_t::current();
+    // Right now we do not distinguish between stdout and stderr.
+    std::ostream& output = *current.output;
+    output << "ERROR: " << args << std::endl;
+    // End the program!
+    current.pc.set(label_t{current.instructions.size()});
+    return unassigned_t();
+  }
+};
+
+primitive_procedure_t* error_primitive_proc = new error_procedure_t;
+
+struct apply_procedure_t : primitive_procedure_t {
+  value_t execute(const value_t& args) {
+    machine_t& current = machine_t::current();
+    assert(args.has<pair_t*>());
+    const pair_t* first_args = args.as<pair_t*>();
+    const value_t& proc = first_args->car;
+    value_t argl{unassigned_t()};
+    if (first_args->cdr.has<pair_t*>()) {
+      std::vector<value_t> temp;
+      pair_t* cur = first_args->cdr.as<pair_t*>();
+      for (; cur->cdr.has<pair_t*>(); cur = cur->cdr.as<pair_t*>()) {
+        temp.push_back(cur->car);
+      }
+      assert(cur->car.has<pair_t*>());
+      argl =
+          temp.empty() ? cur->car : pair_t::make_improper_list(temp, cur->car);
+    }
+    if (proc.has<primitive_procedure_t*>()) {
+      return proc.as<primitive_procedure_t*>()->execute(argl);
+    } else if (proc.has<compiled_procedure_t*>()) {
+      assert(proc.has<compiled_procedure_t*>());
+      const compiled_procedure_t* comp = proc.as<compiled_procedure_t*>();
+      for (reg_t& reg : current.rfile) {
+        if (reg.get_name() == "continue") {
+          reg.set(current.pc.get());
+        } else if (reg.get_name() == "argl") {
+          reg.set(argl);
+        } else if (reg.get_name() == "proc") {
+          reg.set(proc);
+        }
+      }
+      current.pc.set(comp->entry);
+    }
+    return unassigned_t();
+  }
+};
+
+primitive_procedure_t* apply_primitive_proc = new apply_procedure_t;

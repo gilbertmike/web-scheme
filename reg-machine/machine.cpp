@@ -46,7 +46,6 @@ machine_t::machine_t(int rfile_size, std::vector<instr_t::u_ptr>&& instructions)
       input(nullptr) {}
 
 void machine_t::start() {
-  set_current();
   while (true) {
     uintptr_t cur_instr_idx = pc.get().as<label_t>().dst;
     if (cur_instr_idx >= instructions.size()) {
@@ -54,9 +53,10 @@ void machine_t::start() {
     }
 
     pc.set(label_t{cur_instr_idx + 1});
+    set_current();
     instructions.at(cur_instr_idx)->execute(*this);
+    yield_current();
   }
-  yield_current();
 }
 
 static machine_t* running = nullptr;

@@ -34,6 +34,9 @@ std::map<std::string, value_t> sicp_compiler_registers() {
   env->define_variable(quoted_t{"symbol?"}, symbol_test_primitive_proc);
   env->define_variable(quoted_t{"null?"}, null_test_primitive_proc);
 
+  env->define_variable(quoted_t{"error"}, error_primitive_proc);
+  env->define_variable(quoted_t{"apply"}, apply_primitive_proc);
+
   env->define_variable(quoted_t{"input"}, input_primitive_proc);
   env->define_variable(quoted_t{"display"}, print_primitive_proc);
   env->define_variable(quoted_t{"print"}, print_primitive_proc);

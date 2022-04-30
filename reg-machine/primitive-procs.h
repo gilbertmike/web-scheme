@@ -26,9 +26,9 @@ extern primitive_procedure_t* not_primitive_proc;        // TODO
 extern primitive_procedure_t* list_primitive_proc;    // TODO
 extern primitive_procedure_t* length_primitive_proc;  // TODO
 
-extern primitive_procedure_t* cons_primitive_proc;       // TODO
-extern primitive_procedure_t* car_primitive_proc;        // TODO
-extern primitive_procedure_t* cdr_primitive_proc;        // TODO
+extern primitive_procedure_t* cons_primitive_proc;
+extern primitive_procedure_t* car_primitive_proc;
+extern primitive_procedure_t* cdr_primitive_proc;
 extern primitive_procedure_t* caar_primitive_proc;       // TODO
 extern primitive_procedure_t* cadr_primitive_proc;       // TODO
 extern primitive_procedure_t* cadr_primitive_proc;       // TODO
@@ -48,6 +48,5 @@ extern primitive_procedure_t* null_test_primitive_proc;
 extern primitive_procedure_t* print_primitive_proc;
 extern primitive_procedure_t* input_primitive_proc;
 
-extern primitive_procedure_t* error_primitive_proc;  // TODO
-
-extern primitive_procedure_t* apply_primitive_proc;  // TODO
+extern primitive_procedure_t* error_primitive_proc;
+extern primitive_procedure_t* apply_primitive_proc;
