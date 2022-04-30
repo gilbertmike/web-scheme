@@ -421,7 +421,7 @@ value_t parse_object(token_list_t::iterator& it) {
   if (it[0] == "empty-list") {
     obj = new pair_t(unassigned_t(), unassigned_t());
   } else if (it[0].front() == '\'') {
-    obj = quoted_t{.value = it[0].substr(1)};
+    obj = quoted_t{it[0].substr(1)};
   } else if (std::all_of(it[0].begin(), it[0].end(), ::isdigit)) {
     obj = static_cast<int64_t>(std::stoll(it[0]));
   } else if (it[0].front() == '#') {
@@ -444,7 +444,7 @@ value_t parse_object(token_list_t::iterator& it) {
       obj = pair_t::make_improper_list(vals, end);
     }
   } else {  // everything else is interpreted as a symbol
-    obj = quoted_t{.value = it[0]};
+    obj = quoted_t{it[0]};
   }
   ++it;
   return obj;

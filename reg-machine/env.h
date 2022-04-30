@@ -26,5 +26,5 @@ class env_t : garbage_collected_t {
   void mark_children();
 
  private:
-  std::map<std::string, value_t> mapping;
+  std::map<int, value_t> mapping;
 };

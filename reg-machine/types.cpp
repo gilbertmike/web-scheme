@@ -1,6 +1,8 @@
 #include "types.h"
 
 #include <unordered_set>
+#include <unordered_map>
+#include <mutex>
 
 bool operator==(const unassigned_t&, const unassigned_t&) { return true; }
 
@@ -81,4 +83,20 @@ std::ostream& print(std::ostream& out, const value_t& value,
 std::ostream& operator<<(std::ostream& out, const value_t& value) {
   std::unordered_set<void*> seen;
   return print(out, value, seen);
+}
+
+int quoted_next_id = 0;
+std::unordered_map<std::string, int> quoted_interner{};
+std::mutex quoted_interner_mutex;
+
+quoted_t::quoted_t(const std::string& value) {
+  this->value = value; 
+  quoted_interner_mutex.lock();
+  if (auto it = quoted_interner.find(value); it != quoted_interner.end()) {
+    id = it->second;
+  } else {
+    quoted_interner.insert({value, quoted_next_id});
+    id = quoted_next_id++;
+  }
+  quoted_interner_mutex.unlock();
 }

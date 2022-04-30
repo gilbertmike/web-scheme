@@ -41,11 +41,11 @@ env_t* env_t::extend_environment(const value_t& names, pair_t* values) {
 }
 
 void env_t::define_variable(const quoted_t& varname, const value_t& value) {
-  mapping.insert_or_assign(varname.value, value);
+  mapping.insert_or_assign(varname.id, value);
 }
 
 value_t env_t::lookup_var_value(const quoted_t& varname) {
-  return mapping.at(varname.value);
+  return mapping.at(varname.id);
 }
 
 void env_t::mark_children() {

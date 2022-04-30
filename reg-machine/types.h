@@ -26,7 +26,9 @@ struct pair_t;
 struct primitive_procedure_t;
 
 struct quoted_t {
+  quoted_t(const std::string& value);
   std::string value;
+  int id;
 };
 
 struct label_t {
