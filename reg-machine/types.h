@@ -68,7 +68,6 @@ struct value_t {
   }
 
   friend std::ostream& operator<<(std::ostream& out, const value_t& value);
-  // friend std::ostream& operator<<(std::ostream& out, value_t& value);
 
   void mark_children();
 };
@@ -80,12 +79,9 @@ struct pair_t : garbage_collected_t {
   pair_t() : car(unassigned_t()), cdr(unassigned_t()) {}
   pair_t(value_t&& car, value_t&& cdr) : car(car), cdr(cdr) {}
 
-  static pair_t* make_list(const std::vector<value_t>& vals) {
+  static value_t make_list(const std::vector<value_t>& vals) {
+    if (vals.size() < 1) return unassigned_t();
     pair_t* init_pair = new pair_t;
-    if (vals.size() < 1) {
-      return init_pair;
-    }
-
     pair_t* cur_pair = init_pair;
     cur_pair->car = vals.at(0);
     for (auto it = vals.begin() + 1; it != vals.end(); ++it) {

@@ -29,9 +29,11 @@ wasmInterface({
     return path.endsWith('.wasm') ? wasmBytecode : path;
   },
 }).then(module => {
+  const inputCallback = module.addFunction(() => {
+    let input = prompt("Input to the program:");
+    return module.allocateUTF8(input);
+  }, 'i');
   runBtn.addEventListener('click', function (event) {
-    // TODO save the output to the output text box instead of just printing to console
-    // This requires a change in main.cpp
-    oTextBox.value = module.ccall('test_reg_machine', 'string', ['string'], [iTextBox.value]);
+    oTextBox.value = module.ccall('test_reg_machine', 'string', ['string', 'number'], [iTextBox.value, inputCallback]);
   });
 });

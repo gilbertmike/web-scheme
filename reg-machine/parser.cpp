@@ -23,12 +23,6 @@
 #include "instr.h"
 #include "machine.h"
 
-typedef std::map<std::string, reg_t*> regmap_t;
-typedef std::map<std::string, uintptr_t> labelmap_t;
-typedef std::vector<std::string> token_list_t;
-
-token_list_t tokenize(std::istream& is);
-
 machine_t parse(const token_list_t::iterator& start,
                 const token_list_t::iterator& end,
                 const std::map<std::string, value_t>& regs);
@@ -431,7 +425,7 @@ value_t parse_object(token_list_t::iterator& it) {
   } else if (std::all_of(it[0].begin(), it[0].end(), ::isdigit)) {
     obj = static_cast<int64_t>(std::stoll(it[0]));
   } else if (it[0].front() == '#') {
-    obj = it[0].at(1) == 'f';
+    obj = it[0].at(1) != 'f';
   } else if (it[0].front() == '\"') {
     obj = string_t{.value = it[0].substr(1, it[0].size() - 2)};
   } else if (it[0] == "(") {  // quoted list doesn't start with a quote

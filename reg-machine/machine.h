@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <functional>
 #include <stack>
 #include <vector>
 
@@ -48,6 +49,7 @@ struct machine_t {
   void yield_current();
 
   void set_output(std::ostream& output) { this->output = &output; }
+  void set_input(std::function<std::string()> input) { this->input = input; }
 
   void start();
 
@@ -55,6 +57,7 @@ struct machine_t {
   reg_t flag;
   stack_t stack;
   std::ostream* output;
+  std::function<std::string()> input;
   std::vector<instr_t::u_ptr> instructions;
 
   std::vector<reg_t> rfile;

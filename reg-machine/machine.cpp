@@ -1,9 +1,9 @@
 #include "machine.h"
 
 #include <iostream>
-#include <stack>
 #include <mutex>
 #include <optional>
+#include <stack>
 
 #include "types.h"
 
@@ -30,13 +30,20 @@ value_t stack_t::pop() {
 }
 
 machine_t::machine_t(int rfile_size)
-    : pc(label_t{0}), flag(false), instructions(), rfile(rfile_size), output(&std::cout) {}
+    : pc(label_t{0}),
+      flag(false),
+      instructions(),
+      rfile(rfile_size),
+      output(&std::cout),
+      input(nullptr) {}
 
 machine_t::machine_t(int rfile_size, std::vector<instr_t::u_ptr>&& instructions)
     : pc(label_t{0}),
       flag(false),
       instructions(std::move(instructions)),
-      rfile(rfile_size), output(&std::cout) {}
+      rfile(rfile_size),
+      output(&std::cout),
+      input(nullptr) {}
 
 void machine_t::start() {
   set_current();

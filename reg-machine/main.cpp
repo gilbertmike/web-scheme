@@ -1,41 +1,51 @@
 #include <assert.h>
 
+#include <cstring>
 #include <fstream>
 #include <iostream>
 #include <sstream>
 #include <string>
-#include <cstring>
 
 #include "machine.h"
 #include "parser.h"
 #include "sicp.h"
 
-std::string run_reg_machine(const std::string &input);
+std::string run_reg_machine(
+    const std::string &input,
+    std::function<std::string()> input_callback = nullptr);
 
 #ifdef __EMSCRIPTEN__
 #include <emscripten/emscripten.h>
 
 extern "C" {
 EMSCRIPTEN_KEEPALIVE
-// TODO save output as string and return instead of printing to cout
-char *test_reg_machine(char *s) {
-  return strdup(run_reg_machine(s).c_str());
+char *test_reg_machine(char *s, char *(*callback)()) {
+  auto wrapped_callback = [=]() {
+    char *temp = (*callback)();
+    const std::string ret{temp};
+    free((void *)temp);
+    return ret;
+  };
+  return strdup(run_reg_machine(s, wrapped_callback).c_str());
 }
 }
 #endif
 
-std::string run_reg_machine(const std::string &input) {
+std::string run_reg_machine(const std::string &input,
+                            std::function<std::string()> input_callback) {
   std::istringstream is{input};
   std::ostringstream os;
   {
     auto regs = sicp_compiler_registers();
     auto machine = parse(is, regs);
     machine.set_output(os);
+    machine.set_input(input_callback);
     machine.start();
 
     if (machine.pc.get().as<label_t>().dst != machine.instructions.size()) {
-      os << "WARNING: the machine stops in the middle of instructions!" << std::endl;
-    }  
+      os << "WARNING: the machine stops in the middle of instructions!"
+         << std::endl;
+    }
     os << "Execution complete! Printing register values..." << std::endl;
     for (auto &reg : machine.rfile) {
       auto value = reg.get();

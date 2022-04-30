@@ -46,6 +46,7 @@ extern primitive_procedure_t* symbol_test_primitive_proc;
 extern primitive_procedure_t* null_test_primitive_proc;
 
 extern primitive_procedure_t* print_primitive_proc;
+extern primitive_procedure_t* input_primitive_proc;
 
 extern primitive_procedure_t* error_primitive_proc;  // TODO
 

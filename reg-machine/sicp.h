@@ -23,6 +23,10 @@ std::map<std::string, value_t> sicp_compiler_registers() {
   env->define_variable(quoted_t{"-"}, sub_primitive_proc);
   env->define_variable(quoted_t{"*"}, mul_primitive_proc);
 
+  env->define_variable(quoted_t{"car"}, car_primitive_proc);
+  env->define_variable(quoted_t{"cdr"}, cdr_primitive_proc);
+  env->define_variable(quoted_t{"cons"}, cons_primitive_proc);
+
   env->define_variable(quoted_t{"number?"}, number_test_primitive_proc);
   env->define_variable(quoted_t{"pair?"}, pair_test_primitive_proc);
   env->define_variable(quoted_t{"boolean?"}, bool_test_primitive_proc);
@@ -30,6 +34,7 @@ std::map<std::string, value_t> sicp_compiler_registers() {
   env->define_variable(quoted_t{"symbol?"}, symbol_test_primitive_proc);
   env->define_variable(quoted_t{"null?"}, null_test_primitive_proc);
 
+  env->define_variable(quoted_t{"input"}, input_primitive_proc);
   env->define_variable(quoted_t{"display"}, print_primitive_proc);
   env->define_variable(quoted_t{"print"}, print_primitive_proc);
   env->define_variable(quoted_t{"pp"}, print_primitive_proc);

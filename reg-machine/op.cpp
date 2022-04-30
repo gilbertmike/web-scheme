@@ -55,7 +55,10 @@ op_t* str_to_op(std::string_view op_str) {
     return lookup_variable_value_op;
   } else if (op_str == "set-variable-value!") {
     return define_variable_op;
+  } else if (op_str == "define-variable!") {
+    return define_variable_op;
   }
+
 
   throw std::runtime_error(
       std::string("unknown primitive operation ").append(op_str));
