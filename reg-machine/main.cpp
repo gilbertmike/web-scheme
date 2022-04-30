@@ -38,7 +38,9 @@ std::string run_reg_machine(const std::string &input,
   {
     auto regs = sicp_compiler_registers();
     auto machine = parse(is, regs);
+#ifdef __EMSCRIPTEN__
     machine.set_output(os);
+#endif
     machine.set_input(input_callback);
     machine.start();
 
@@ -46,6 +48,7 @@ std::string run_reg_machine(const std::string &input,
       os << "WARNING: the machine stops in the middle of instructions!"
          << std::endl;
     }
+    os << "===============================================" << std::endl;
     os << "Execution complete! Printing register values..." << std::endl;
     for (auto &reg : machine.rfile) {
       auto value = reg.get();
@@ -57,7 +60,15 @@ std::string run_reg_machine(const std::string &input,
 
 int main(int argc, char *argv[]) {
 #ifndef __EMSCRIPTEN__
-  // test_reg_machine(varargs);
+  std::ifstream file{"../example/compiler.rma"};
+  std::stringstream buffer;
+  buffer << file.rdbuf();
+  std::string output = run_reg_machine(buffer.str(), [&]() {
+    std::string temp;
+    std::getline(std::cin, temp);
+    return temp;
+  });
+  std::cout << output << std::endl;
 #endif
   return 0;
 }

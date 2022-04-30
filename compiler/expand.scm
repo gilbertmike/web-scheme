@@ -440,8 +440,9 @@
                  ;; Ensure the consequence is a single expression.
                  (if (s:null? (s:cddr first))
                      (s:cadr first)
-                     `(,(s:core 'begin)
-                       ,@(s:push-down (s:cdr first))))))
+                     (s:datum->syntax
+                      `(,(s:core 'begin)
+                        ,@(s:push-down (s:cdr first)))))))
             (if (s:else? first-predicate env)
                 (s:expand first-consequence env menv)
                 (s:expand

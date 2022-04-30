@@ -26,7 +26,9 @@ struct pair_t;
 struct primitive_procedure_t;
 
 struct quoted_t {
-  quoted_t(const std::string& value);
+  static quoted_t generate_uninterned(const std::string&);
+
+  quoted_t(const std::string&);
   std::string value;
   int id;
 };
@@ -39,12 +41,16 @@ struct string_t {
   std::string value;
 };
 
-// unassigned variables
+// Unassigned variables.
 struct unassigned_t {};
 
+// These are for eq?.
+bool operator==(const quoted_t&, const quoted_t&);
+bool operator==(const label_t&, const label_t&);
+bool operator==(const string_t&, const string_t&);
 bool operator==(const unassigned_t&, const unassigned_t&);
 
-// variables contain pointer to an object
+// Variables contain pointer to an object.
 struct value_t {
   std::variant<compiled_procedure_t*, env_t*, primitive_procedure_t*, pair_t*,
                string_t, quoted_t, label_t, int64_t, bool, unassigned_t>
@@ -73,6 +79,9 @@ struct value_t {
 
   void mark_children();
 };
+
+// Equivalent to eq?;
+bool operator==(const value_t&, const value_t&);
 
 struct pair_t : garbage_collected_t {
   value_t car;

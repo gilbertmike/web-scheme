@@ -14,8 +14,12 @@ struct machine_t;
 struct instr_t {
   typedef std::unique_ptr<instr_t> u_ptr;
 
-  virtual ~instr_t() {};
+  virtual ~instr_t(){};
   virtual void execute(machine_t& machine) = 0;
+
+  // RTTI may be as better solution, but that adds overhead and causes code
+  // bloat. These are used in apply in a very cursed way.
+  virtual bool is_goto_reg() const { return false; }
 };
 
 struct assign_reg_instr_t : instr_t {
@@ -102,6 +106,8 @@ struct goto_reg_instr_t : instr_t {
   goto_reg_instr_t(reg_t* dst) : dst(dst) {}
 
   void execute(machine_t& machine) override;
+
+  bool is_goto_reg() const override { return true; }
 };
 
 /*** Stack instructions ***/

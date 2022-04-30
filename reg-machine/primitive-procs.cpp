@@ -225,9 +225,14 @@ struct apply_procedure_t : primitive_procedure_t {
     } else if (proc.has<compiled_procedure_t*>()) {
       assert(proc.has<compiled_procedure_t*>());
       const compiled_procedure_t* comp = proc.as<compiled_procedure_t*>();
+      const instr_t* next =
+          current.instructions.at(current.pc.get().as<label_t>().dst).get();
+      bool should_update_continue =
+          !next->is_goto_reg() ||
+          ((goto_reg_instr_t*)next)->dst->get_name() != "continue";
       for (reg_t& reg : current.rfile) {
         if (reg.get_name() == "continue") {
-          reg.set(current.pc.get());
+          if (should_update_continue) reg.set(current.pc.get());
         } else if (reg.get_name() == "argl") {
           reg.set(argl);
         } else if (reg.get_name() == "proc") {
@@ -241,3 +246,45 @@ struct apply_procedure_t : primitive_procedure_t {
 };
 
 primitive_procedure_t* apply_primitive_proc = new apply_procedure_t;
+
+struct eq_test_procedure_t : primitive_procedure_t {
+  value_t execute(const value_t& args) {
+    const auto& [a, b] = two_args(args);
+    return a == b;
+  }
+};
+
+primitive_procedure_t* eq_test_primitive_proc = new eq_test_procedure_t;
+
+struct eqv_test_procedure_t : primitive_procedure_t {
+  value_t execute(const value_t& args) {
+    const auto& [a, b] = two_args(args);
+    return a == b || ((a.has<string_t>() && b.has<string_t>()) &&
+                      (a.as<string_t>().value == b.as<string_t>().value));
+  }
+};
+
+primitive_procedure_t* eqv_test_primitive_proc = new eqv_test_procedure_t;
+
+struct not_procedure_t : primitive_procedure_t {
+  value_t execute(const value_t& args) {
+    const value_t& arg = one_arg(args);
+    return !arg.has<bool>() || !arg.as<bool>();
+  }
+};
+
+primitive_procedure_t* not_primitive_proc = new not_procedure_t;
+
+struct gensym_procedure_t : primitive_procedure_t {
+  value_t execute(const value_t& args) {
+    const value_t& arg = one_arg(args);
+    if (arg.has<quoted_t>()) {
+      return quoted_t::generate_uninterned(arg.as<quoted_t>().value);
+    } else if (arg.has<string_t>()) {
+      return quoted_t::generate_uninterned(arg.as<string_t>().value);
+    }
+    __builtin_unreachable();
+  }
+};
+
+primitive_procedure_t* gensym_primitive_proc = new gensym_procedure_t;

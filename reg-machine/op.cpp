@@ -10,9 +10,9 @@
  */
 #include "op.h"
 
-#include <assert.h>
-
 #include <algorithm>
+#include <cassert>
+#include <iostream>
 
 #include "compiled-proc.h"
 #include "env.h"
@@ -54,11 +54,10 @@ op_t* str_to_op(std::string_view op_str) {
   } else if (op_str == "lookup-variable-value") {
     return lookup_variable_value_op;
   } else if (op_str == "set-variable-value!") {
-    return define_variable_op;
+    return set_variable_op;
   } else if (op_str == "define-variable!") {
     return define_variable_op;
   }
-
 
   throw std::runtime_error(
       std::string("unknown primitive operation ").append(op_str));
@@ -111,7 +110,7 @@ op_t* pair_test_op = new pair_test_op_t;
 struct true_test_op_t : op_t {
   value_t execute(const arg_list_t& args) {
     assert(args.size() == 1);
-    return args.at(0).as<bool>();
+    return !args.at(0).has<bool>() || args.at(0).as<bool>();
   }
 };
 
@@ -120,7 +119,7 @@ op_t* true_test_op = new true_test_op_t;
 struct false_test_op_t : op_t {
   value_t execute(const arg_list_t& args) {
     assert(args.size() == 1);
-    return !args.at(0).as<bool>();
+    return args.at(0).has<bool>() && !args.at(0).as<bool>();
   }
 };
 
@@ -214,9 +213,8 @@ struct extend_environment_op_t : op_t {
   value_t execute(const arg_list_t& args) {
     assert(args.size() == 3);
     const value_t& names = args.at(0);
-    pair_t* values = args.at(1).as<pair_t*>();
     env_t* env = args.at(2).as<env_t*>();
-    return env->extend_environment(names, values);
+    return env->extend_environment(names, args.at(1));
   }
 };
 
@@ -245,3 +243,16 @@ struct define_variable_op_t : op_t {
 };
 
 op_t* define_variable_op = new define_variable_op_t;
+
+struct set_variable_op_t : op_t {
+  value_t execute(const arg_list_t& args) {
+    assert(args.size() == 3);
+    quoted_t name = args.at(0).as<quoted_t>();
+    value_t val = args.at(1);
+    env_t* env = args.at(2).as<env_t*>();
+    env->set_variable(name, val);
+    return unassigned_t();
+  }
+};
+
+op_t* set_variable_op = new set_variable_op_t;

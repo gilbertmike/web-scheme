@@ -23,6 +23,11 @@ std::map<std::string, value_t> sicp_compiler_registers() {
   env->define_variable(quoted_t{"-"}, sub_primitive_proc);
   env->define_variable(quoted_t{"*"}, mul_primitive_proc);
 
+  env->define_variable(quoted_t{"not"}, not_primitive_proc);
+
+  env->define_variable(quoted_t{"eq?"}, eq_test_primitive_proc);
+  env->define_variable(quoted_t{"eqv?"}, eqv_test_primitive_proc);
+
   env->define_variable(quoted_t{"car"}, car_primitive_proc);
   env->define_variable(quoted_t{"cdr"}, cdr_primitive_proc);
   env->define_variable(quoted_t{"cons"}, cons_primitive_proc);
@@ -37,8 +42,12 @@ std::map<std::string, value_t> sicp_compiler_registers() {
   env->define_variable(quoted_t{"error"}, error_primitive_proc);
   env->define_variable(quoted_t{"apply"}, apply_primitive_proc);
 
+  env->define_variable(quoted_t{"gensym"}, gensym_primitive_proc);
+  env->define_variable(quoted_t{"generate-uninterned-symbol"}, gensym_primitive_proc);
+
   env->define_variable(quoted_t{"input"}, input_primitive_proc);
   env->define_variable(quoted_t{"display"}, print_primitive_proc);
+  env->define_variable(quoted_t{"write-line"}, print_primitive_proc);
   env->define_variable(quoted_t{"print"}, print_primitive_proc);
   env->define_variable(quoted_t{"pp"}, print_primitive_proc);
 

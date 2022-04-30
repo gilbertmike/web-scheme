@@ -15,11 +15,11 @@
 class env_t : garbage_collected_t {
  public:
   env_t();
-  env_t(const env_t& other);
 
-  env_t* extend_environment(const value_t& names, pair_t* values);
+  env_t* extend_environment(const value_t& names, const value_t& values);
 
   void define_variable(const quoted_t& varname, const value_t& value);
+  void set_variable(const quoted_t& varname, const value_t& value);
 
   value_t lookup_var_value(const quoted_t& varname);
 
@@ -27,4 +27,5 @@ class env_t : garbage_collected_t {
 
  private:
   std::map<int, value_t> mapping;
+  env_t* parent;
 };

@@ -1,10 +1,20 @@
 #include "types.h"
 
-#include <unordered_set>
-#include <unordered_map>
+#include <algorithm>
 #include <mutex>
+#include <unordered_map>
+#include <unordered_set>
 
+bool operator==(const label_t& a, const label_t& b) { return a.dst == b.dst; }
+bool operator==(const quoted_t& a, const quoted_t& b) { return a.id == b.id; }
+bool operator==(const string_t& a, const string_t& b) {
+  // Avoid character-by-character compatison here.
+  return a.value.c_str() == b.value.c_str();
+}
 bool operator==(const unassigned_t&, const unassigned_t&) { return true; }
+bool operator==(const value_t& a, const value_t& b) {
+  return a.value == b.value;
+}
 
 value_t::value_t() : value(unassigned_t()) {}
 value_t::value_t(const value_t& other) : value(other.value) {}
@@ -90,13 +100,47 @@ std::unordered_map<std::string, int> quoted_interner{};
 std::mutex quoted_interner_mutex;
 
 quoted_t::quoted_t(const std::string& value) {
-  this->value = value; 
+  this->value = value;
+  std::transform(this->value.begin(), this->value.end(), this->value.begin(),
+                 [](auto ch) { return std::tolower(ch); });
   quoted_interner_mutex.lock();
-  if (auto it = quoted_interner.find(value); it != quoted_interner.end()) {
+  if (auto it = quoted_interner.find(this->value);
+      it != quoted_interner.end()) {
     id = it->second;
   } else {
-    quoted_interner.insert({value, quoted_next_id});
+    quoted_interner.insert({this->value, quoted_next_id});
     id = quoted_next_id++;
   }
   quoted_interner_mutex.unlock();
+}
+
+quoted_t quoted_t::generate_uninterned(const std::string& base) {
+  // Slow but guaranteed to complete in constant time.
+  // Finds the smallest number x such that base + x has not been interned, in
+  // logarithmic time.
+  int lower_bound = 0;
+  int upper_bound = 0;
+  int step = 1;
+  quoted_interner_mutex.lock();
+  while (true) {
+    const std::string temp = base + std::to_string(upper_bound);
+    if (auto it = quoted_interner.find(temp); it == quoted_interner.end()) {
+      break;
+    } else {
+      lower_bound = upper_bound + 1;
+      upper_bound += step;
+      step <<= 1;
+    }
+  }
+  while (lower_bound < upper_bound) {
+    const int mid = (lower_bound + upper_bound) / 2;
+    const std::string temp = base + std::to_string(mid);
+    if (auto it = quoted_interner.find(temp); it == quoted_interner.end()) {
+      upper_bound = mid;
+    } else {
+      lower_bound = mid + 1;
+    }
+  }
+  quoted_interner_mutex.unlock();
+  return quoted_t{base + std::to_string(lower_bound)};
 }

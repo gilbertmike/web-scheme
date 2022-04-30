@@ -44,3 +44,4 @@ extern op_t* compiled_procedure_entry_op;
 extern op_t* extend_environment_op;
 extern op_t* lookup_variable_value_op;
 extern op_t* define_variable_op;
+extern op_t* set_variable_op;
