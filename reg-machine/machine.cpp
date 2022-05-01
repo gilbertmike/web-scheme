@@ -23,6 +23,8 @@ stack_t::stack_t() {}
 
 void stack_t::push(const value_t& value) { stack.emplace(value); }
 
+bool stack_t::empty() const { return stack.empty(); }
+
 value_t stack_t::pop() {
   auto top = stack.top();
   stack.pop();
@@ -56,11 +58,39 @@ void machine_t::start() {
     set_current();
     instructions.at(cur_instr_idx)->execute(*this);
     yield_current();
+    if (gc.current_size() > 2000) {
+      int old_size = gc.current_size();
+      do_gc();
+      std::cout << "Performed GC, heap size " << old_size << " -> "
+                << gc.current_size() << std::endl;
+    }
   }
+}
+
+void machine_t::do_gc() {
+  std::vector<value_t> temp;
+  std::vector<garbage_collected_t*> roots;
+  while (!stack.empty()) {
+    value_t top = stack.pop();
+    if (auto gc = top.as_garbage_collected(); gc) roots.push_back(gc);
+    temp.push_back(top);
+  }
+  while (!temp.empty()) {
+    stack.push(temp.back());
+    temp.pop_back();
+  }
+  for (const auto& reg : rfile) {
+    if (auto gc = reg.get().as_garbage_collected(); gc) {
+      roots.push_back(gc);
+    }
+  }
+  gc.collect(roots);
 }
 
 static machine_t* running = nullptr;
 static std::mutex gil;
+
+bool machine_t::any_running() { return running; }
 
 machine_t& machine_t::current() {
   assert(running);

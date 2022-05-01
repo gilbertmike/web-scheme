@@ -5,6 +5,9 @@
 #include <unordered_map>
 #include <unordered_set>
 
+#include "compiled-proc.h"
+#include "primitive-procs.h"
+
 bool operator==(const label_t& a, const label_t& b) { return a.dst == b.dst; }
 bool operator==(const quoted_t& a, const quoted_t& b) { return a.id == b.id; }
 bool operator==(const string_t& a, const string_t& b) {
@@ -26,14 +29,23 @@ value_t& value_t::operator=(const value_t& other) {
   return *this;
 }
 
-void value_t::mark_children() {
-  std::visit(
-      [](auto&& arg) {
-        if constexpr (std::is_pointer_v<decltype(arg)>) {
-          arg->mark_children();
+garbage_collected_t* value_t::as_garbage_collected() const {
+  return std::visit(
+      [&](auto&& arg) {
+        using T = std::decay_t<decltype(arg)>;
+        if constexpr (std::is_pointer_v<T> &&
+                      std::is_base_of_v<garbage_collected_t,
+                                        std::remove_pointer_t<T>>) {
+          return (garbage_collected_t*)arg;
+        } else {
+          return (garbage_collected_t*)nullptr;
         }
       },
       value);
+}
+
+void value_t::mark() {
+  if (auto self_gc = as_garbage_collected(); self_gc) self_gc->mark();
 }
 
 std::ostream& print(std::ostream& out, const value_t& value,
@@ -52,6 +64,8 @@ void try_print_list(std::ostream& out, const pair_t* cur,
   }
   out << ")";
 }
+
+const std::string& quoted_to_string(int id);
 
 std::ostream& print(std::ostream& out, const value_t& value,
                     std::unordered_set<void*>& seen) {
@@ -75,11 +89,11 @@ std::ostream& print(std::ostream& out, const value_t& value,
         } else if constexpr (std::is_same_v<T, string_t>) {
           out << '"' << arg.value << '"';
         } else if constexpr (std::is_same_v<T, compiled_procedure_t*>) {
-          out << "#[compiled procedure]";
+          out << "#[compiled procedure at " << arg->entry.dst << "]";
         } else if constexpr (std::is_same_v<T, primitive_procedure_t*>) {
           out << "#[primitive procedure]";
         } else if constexpr (std::is_same_v<T, env_t*>) {
-          out << "#[environment]";
+         out << "#[environment]";
         } else if constexpr (std::is_same_v<T, unassigned_t>) {
           out << "()";
         } else if constexpr (std::is_same_v<T, label_t>) {
@@ -98,6 +112,16 @@ std::ostream& operator<<(std::ostream& out, const value_t& value) {
 int quoted_next_id = 0;
 std::unordered_map<std::string, int> quoted_interner{};
 std::mutex quoted_interner_mutex;
+
+// Very slow, only for use in debugging.
+const std::string& quoted_to_string(int id) {
+  static std::string error{"<error>"};
+  quoted_interner_mutex.lock();
+  for (const auto& [key, value] : quoted_interner)
+    if (value == id) return key;
+  quoted_interner_mutex.unlock();
+  return error;
+}
 
 quoted_t::quoted_t(const std::string& value) {
   this->value = value;

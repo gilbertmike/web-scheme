@@ -11,11 +11,13 @@
 #pragma once
 
 #include "env.h"
+#include "gc.h"
 #include "types.h"
 
-struct compiled_procedure_t {
+struct compiled_procedure_t : public garbage_collected_t {
   env_t* env;
   label_t entry;
 
   compiled_procedure_t(const label_t& entry, env_t* env);
+  void mark_children() override;
 };

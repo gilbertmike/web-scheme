@@ -11,6 +11,7 @@
 #include "env.h"
 
 #include <cassert>
+#include <iostream>
 #include <string>
 
 env_t::env_t() : mapping(), parent(nullptr) {}
@@ -53,6 +54,12 @@ void env_t::define_variable(const quoted_t& varname, const value_t& value) {
   mapping.insert_or_assign(varname.id, value);
 }
 
+void env_t::define_global_variable(const quoted_t& varname, const value_t& value) {
+  env_t* root = this;
+  while (root->parent) root = root->parent;
+  root->define_variable(varname, value);
+}
+
 void env_t::set_variable(const quoted_t& varname, const value_t& value) {
   env_t* cur = this;
   while (cur) {
@@ -62,7 +69,7 @@ void env_t::set_variable(const quoted_t& varname, const value_t& value) {
     }
     cur = cur->parent;
   }
-  fprintf(stderr, "unbound variable: %s\n", varname.value.c_str());
+  std::cerr << "Unbound variable: " << varname.value << std::endl;
   throw std::runtime_error("unbound variable");
 }
 
@@ -74,13 +81,11 @@ value_t env_t::lookup_var_value(const quoted_t& varname) {
     }
     cur = cur->parent;
   }
-  fprintf(stderr, "unbound variable: %s\n", varname.value.c_str());
+  std::cerr << "Unbound variable: " << varname.value << std::endl;
   throw std::runtime_error("unbound variable");
 }
 
 void env_t::mark_children() {
-  for (auto& [key, value] : mapping) {
-    value.mark_children();
-  }
-  if (parent) parent->mark_children();
+  for (auto& [key, value] : mapping) value.mark();
+  if (parent) parent->mark();
 }

@@ -13,6 +13,7 @@
 #include <assert.h>
 
 #include <algorithm>
+#include <fstream>
 #include <istream>
 #include <map>
 #include <memory>
@@ -118,6 +119,10 @@ machine_t parse(const token_list_t::iterator& tokens,
   regmap_t regmap;
   int idx = 0;
   for (const auto& [key, value] : regs) {
+    if (auto value_gc = value.as_garbage_collected(); value_gc) {
+      machine.gc.track(value_gc);
+      garbage_collector.untrack(value_gc);
+    }
     machine.rfile[idx].set(value);
     machine.rfile[idx].set_name(key);
     regmap.insert({key, &machine.rfile[idx]});
@@ -178,9 +183,16 @@ std::vector<instr_t::u_ptr> parse_lines(
     const token_list_t::iterator& start, const token_list_t::iterator& end,
     const regmap_t& regmap, const std::map<std::string, uintptr_t>& labelmap) {
   std::vector<instr_t::u_ptr> instr_list;
+#ifndef __EMSCRIPTEN__
+  std::ofstream parse_log{"parse_log.txt"};
+#endif
 
   for (auto it = start; it != end; ++it) {
     if (it[0] == "(") {
+#ifndef __EMSCRIPTEN__
+      auto start = it + 1;
+      parse_log << instr_list.size() << ":";
+#endif
       if (it[1] == "assign") {
         instr_list.emplace_back(parse_assign(it, regmap, labelmap));
       } else if (it[1] == "perform") {
@@ -199,7 +211,16 @@ std::vector<instr_t::u_ptr> parse_lines(
         throw std::runtime_error(
             std::string("error parsing instruction: ").append(it[1]));
       }
+#ifndef __EMSCRIPTEN__
+      for (auto tmp = start; tmp != it; ++tmp) {
+        parse_log << " " << *tmp;
+      }
+      parse_log << std::endl;
+#endif
     } else {
+#ifndef __EMSCRIPTEN__
+      parse_log << *it << ": " << std::endl;
+#endif
       /* do nothing */
     }
   }

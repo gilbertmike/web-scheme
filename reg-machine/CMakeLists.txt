@@ -8,8 +8,8 @@ add_executable(web_scheme
 
 if(EMSCRIPTEN)
     target_link_options(web_scheme PRIVATE
-        -sMODULARIZE -sWASM=1 -sEXPORTED_RUNTIME_METHODS=ccall,cwrap,addFunction,allocateUTF8
-        -sENVIRONMENT=web -sEXPORT_NAME="wasmInterface" -sALLOW_TABLE_GROWTH)
+        -sMODULARIZE -sWASM=1 -sEXPORTED_RUNTIME_METHODS=ccall,addFunction,allocateUTF8
+        -sENVIRONMENT=web -sEXPORT_NAME="wasmInterface" -sALLOW_TABLE_GROWTH -O2)
     add_custom_command(TARGET web_scheme POST_BUILD
         COMMAND "${CMAKE_COMMAND}" -E copy 
             "$<TARGET_FILE_DIR:web_scheme>/web_scheme.js"

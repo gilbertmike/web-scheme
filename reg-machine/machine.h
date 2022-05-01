@@ -31,8 +31,8 @@ class stack_t {
   stack_t();
 
   void push(const value_t& value);
-
   value_t pop();
+  bool empty() const;
 
  private:
   std::stack<value_t> stack;
@@ -44,6 +44,7 @@ struct machine_t {
 
   static machine_t construct_from_string(std::string_view text);
 
+  static bool any_running();
   static machine_t& current();
   void set_current();
   void yield_current();
@@ -52,6 +53,7 @@ struct machine_t {
   void set_input(std::function<std::string()> input) { this->input = input; }
 
   void start();
+  void do_gc();
 
   reg_t pc;
   reg_t flag;
@@ -59,6 +61,7 @@ struct machine_t {
   std::ostream* output;
   std::function<std::string()> input;
   std::vector<instr_t::u_ptr> instructions;
+  garbage_collector_t gc;
 
   std::vector<reg_t> rfile;
 };

@@ -13,6 +13,7 @@
 #include <cassert>
 #include <cstdint>
 #include <map>
+#include <unordered_map>
 #include <ostream>
 #include <stdexcept>
 #include <string>
@@ -77,13 +78,14 @@ struct value_t {
 
   friend std::ostream& operator<<(std::ostream& out, const value_t& value);
 
-  void mark_children();
+  garbage_collected_t* as_garbage_collected() const;
+  void mark();
 };
 
 // Equivalent to eq?;
 bool operator==(const value_t&, const value_t&);
 
-struct pair_t : garbage_collected_t {
+struct pair_t : public garbage_collected_t {
   value_t car;
   value_t cdr;
 
@@ -118,8 +120,8 @@ struct pair_t : garbage_collected_t {
     return init_pair;
   }
 
-  void mark_children() {
-    car.mark_children();
-    cdr.mark_children();
+  void mark_children() override {
+    car.mark();
+    cdr.mark();
   }
 };

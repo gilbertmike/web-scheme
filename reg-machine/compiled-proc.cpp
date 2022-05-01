@@ -12,3 +12,5 @@
 
 compiled_procedure_t::compiled_procedure_t(const label_t& entry, env_t* env)
     : entry(entry), env(env) {}
+
+void compiled_procedure_t::mark_children() { env->mark(); }

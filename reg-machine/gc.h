@@ -22,12 +22,15 @@ class garbage_collector_t {
  public:
   garbage_collector_t();
 
-  template <typename InputIt>
-  void collect(InputIt begin, InputIt end);
+  void collect(std::vector<garbage_collected_t*>& roots);
+  void track(garbage_collected_t*);
+  // VERY SLOW! DON'T CALL IF YOU HAVE TO.
+  void untrack(garbage_collected_t*);
+
+  int current_size() const;
 
  private:
   friend garbage_collected_t::garbage_collected_t();
-  void add_gc_object(garbage_collected_t*);
 
  private:
   std::vector<garbage_collected_t*> heap;

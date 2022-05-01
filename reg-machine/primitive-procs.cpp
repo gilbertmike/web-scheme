@@ -200,7 +200,7 @@ struct error_procedure_t : primitive_procedure_t {
     // Right now we do not distinguish between stdout and stderr.
     std::ostream& output = *current.output;
     output << "ERROR: " << args << std::endl;
-    if (&output != std::cerr) {
+    if (&output != &std::cerr) {
       std::cerr << "ERROR: " << args << std::endl;
     }
     // End the program!
@@ -224,7 +224,6 @@ struct apply_procedure_t : primitive_procedure_t {
       for (; cur->cdr.has<pair_t*>(); cur = cur->cdr.as<pair_t*>()) {
         temp.push_back(cur->car);
       }
-      assert(cur->car.has<pair_t*>());
       argl =
           temp.empty() ? cur->car : pair_t::make_improper_list(temp, cur->car);
     }
