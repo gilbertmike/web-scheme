@@ -29,3 +29,5 @@
         "example/compiler.rma"
       (lambda (output)
         (compile-to (read input) #f output)))))
+
+;; ((lambda (fact) (set! fact (lambda (n) (if (= n 0) 1 (* n (fact (- n 1)))))) (fact 6)) #f)

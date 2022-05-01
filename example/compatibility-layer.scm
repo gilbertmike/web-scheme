@@ -19,7 +19,7 @@
 (define (append . lsts) (append* lsts))
 (define (memq item items)
   (cond ((null? items) #f)
-        ((eq? (car items) item) (car items))
+        ((eq? (car items) item) items)
         (else (memq item (cdr items)))))
 (define (reverse lst)
   (define (iter sofar rest)
