@@ -1,4 +1,4 @@
-$body-color: slateblue;
+$body-color: #a32d2a;
 
 body {
   color: $body-color;
@@ -6,15 +6,12 @@ body {
 }
 
 #logo {
-  display: block;
-  margin-top: 50px;
-  margin-left: auto;
-  margin-right: auto;
-  width: 60%;
+  height: 1em;
+  margin: auto;
 }
 
 #left {
-  width: 20%;
+  width: 30%;
   margin-left: 1%;
   height: 98vh;
   float: left;
@@ -25,11 +22,35 @@ body {
 }
 
 #right {
-  margin-left: 22%;
+  margin-left: calc(31% + 20px);
   margin-right: 1%;
   display: flex;
   flex-direction: column;
   height: 98vh;
+}
+
+#banner {
+  width: 100%;
+  font-size: 40px;
+  justify-content: flex-start;
+  margin-top: 1vh;
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  height: 10%;
+  gap: 10px;
+}
+
+#banner-text {
+  font-weight: bold;
+  margin: auto;
+  width: 100%;
+}
+
+#description {
+  width: 100%;
+  margin-top: 20px;
+  color: black;
 }
 
 #fin-label {
@@ -40,6 +61,7 @@ body {
 
 .btn {
   width: 100%;
+  margin-top: 5px;
   min-height: 30px;
   box-sizing: border-box;
 }
@@ -53,10 +75,13 @@ h1 {
   width: 100%;
   height: 100%;
   box-sizing: border-box;
+  resize: none;
 }
 
 #input {
   margin-right: 20px;
+  margin-top: 2vh;
   width: 100%;
   height: 100%;
+  resize: none;
 }

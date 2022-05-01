@@ -4,21 +4,28 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>web-scheme Demo</title>
-  <meta name="description" content="A light foundation for your next frontend project based on webpack.">
+  <title>Web-Scheme Demo</title>
+  <meta name="description" content="Web-Scheme is a Scheme compiler with a WebAssembly-based runtime!">
 </head>
 
 <body>
   <script src="./scripts/index.js"></script>
   <div id="left">
-    <img src="images/schlogo-250.png" alt="6.945 logo" id="logo">
-    <h1>web-scheme Demo</h1>
-    <label id="fin-label">Upload assembly...</label>
+    <div id="banner">
+      <img src="images/web-assembly.svg" alt="web-scheme logo" id="logo">
+      <img src="images/web-scheme.svg" alt="WebAssembly logo" id="logo">
+      <span id="banner-text">WEB-SCHEME</span>
+      <a href="https://github.com/gilbertmike/web-scheme" target="_blank">
+        <img src="images/github.svg" alt="web-scheme repository" style="height: 0.5em">
+      </a>
+    </div>
+    <div id="description">
+      Web-Scheme is a Scheme compiler with a WebAssembly-based runtime!
+    </div> 
+    <label id="fin-label">Upload the compiled assembly below...</label>
     <input type="file" id="file-input" class="btn"></input>
     <button id="run" class="btn">Run register machine</button>
-    <textarea id="output" readonly placeholder="Click the button above to see the output!">
-      Some output...
-    </textarea>
+    <textarea id="output" readonly placeholder="Click the button above to see the output!"></textarea>
   </div>
   <div id="right">
     <textarea id="input" spellcheck="false" placeholder="Upload or paste the assembly file here!"></textarea>

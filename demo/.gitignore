@@ -10,6 +10,8 @@ src/wasm
 # misc
 .DS_Store
 
+deploy.sh
+
 npm-debug.log
 yarn-error.log
 yarn.lock
