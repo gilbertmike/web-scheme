@@ -8,7 +8,7 @@
 bool operator==(const label_t& a, const label_t& b) { return a.dst == b.dst; }
 bool operator==(const quoted_t& a, const quoted_t& b) { return a.id == b.id; }
 bool operator==(const string_t& a, const string_t& b) {
-  // Avoid character-by-character compatison here.
+  // Avoid character-by-character comparison here.
   return a.value.c_str() == b.value.c_str();
 }
 bool operator==(const unassigned_t&, const unassigned_t&) { return true; }
@@ -115,7 +115,6 @@ quoted_t::quoted_t(const std::string& value) {
 }
 
 quoted_t quoted_t::generate_uninterned(const std::string& base) {
-  // Slow but guaranteed to complete in constant time.
   // Finds the smallest number x such that base + x has not been interned, in
   // logarithmic time.
   int lower_bound = 0;
