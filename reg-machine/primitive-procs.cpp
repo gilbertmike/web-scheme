@@ -11,6 +11,7 @@
 #include "primitive-procs.h"
 
 #include <cassert>
+#include <iostream>
 #include <sstream>
 
 #include "compiled-proc.h"
@@ -122,6 +123,10 @@ struct print_procedure_t : primitive_procedure_t {
       if (args_pair->car.has<bool>()) endl = args_pair->car.as<bool>();
     }
     if (endl) output << std::endl;
+    if (&output != &std::cout) {
+      std::cout << args_pair->car;
+      if (endl) std::cout << std::endl;
+    }
     return unassigned_t();
   }
 };
@@ -195,6 +200,9 @@ struct error_procedure_t : primitive_procedure_t {
     // Right now we do not distinguish between stdout and stderr.
     std::ostream& output = *current.output;
     output << "ERROR: " << args << std::endl;
+    if (&output != std::cerr) {
+      std::cerr << "ERROR: " << args << std::endl;
+    }
     // End the program!
     current.pc.set(label_t{current.instructions.size()});
     return unassigned_t();
@@ -288,3 +296,13 @@ struct gensym_procedure_t : primitive_procedure_t {
 };
 
 primitive_procedure_t* gensym_primitive_proc = new gensym_procedure_t;
+
+struct halt_procedure_t : primitive_procedure_t {
+  value_t execute(const value_t& args) {
+    machine_t& current = machine_t::current();
+    current.pc.set(label_t{current.instructions.size()});
+    return args.as<pair_t*>()->car;
+  }
+};
+
+primitive_procedure_t* halt_primitive_proc = new halt_procedure_t;

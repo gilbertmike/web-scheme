@@ -44,3 +44,5 @@ extern primitive_procedure_t* gensym_primitive_proc;
 
 extern primitive_procedure_t* error_primitive_proc;
 extern primitive_procedure_t* apply_primitive_proc;
+
+extern primitive_procedure_t* halt_primitive_proc;

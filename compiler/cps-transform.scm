@@ -104,18 +104,40 @@
   (match-args (special-form-predicate 'lambda) k:continuation?)
   k:cps-lambda)
 
+;;; NOTE: keep in sync with sicp.h
 (define k:primitive-operators
-  '(= eq? eqv? + - * / cons cdr car list))
+  '(= eq? eqv? + - * cons cdr car not number? pair? symbol? boolean? string?
+      null? error apply gensym generate-uninterned-symbol input display
+      write-line pp print))
+
+(define (k:cps-primitives)
+  (define apply-name (generate-uninterned-symbol '%%apply))
+  (define halt-name (generate-uninterned-symbol '%%halt))
+  (define (cps-primitive name)
+    `(define ,name
+       ((lambda (the-primitive)
+          (lambda (cont . args)
+            (cont (,apply-name the-primitive args))))
+        ,name)))
+  (append
+   `((define ,apply-name apply)
+     (define ,halt-name %halt)
+     (define %halt
+       (lambda (result) (,halt-name result))))
+   (map cps-primitive k:primitive-operators)))
 
 (define (k:cps-application expr cont)
   (define (cps-operands operator cont operands rest)
     (if (null? rest)
+        #|
         (if (memq (if (enriched-symbol? operator)
                       (enriched-symbol-base operator)
                       operator)
                   k:primitive-operators)
             (list cont (cons operator (reverse operands)))
             (cons operator (cons cont (reverse operands))))
+        |#
+        (cons operator (cons cont (reverse operands)))
         (let ((first (car rest)))
           (if (k:self-cps? first)
               (cps-operands operator cont (cons first operands) (cdr rest))
@@ -163,4 +185,10 @@
   k:cps-lambda-application)
 
 (define (cps-transform expr)
-  (k:cps expr '%halt))
+  `(begin
+     ,@(k:cps-primitives)
+     (define call-with-current-continuation
+       (lambda (k f)
+         (f k (lambda (dummy-k result) (k result)))))
+     (define call/cc call-with-current-continuation)
+     ,(k:cps expr '%halt)))

@@ -41,6 +41,8 @@ std::map<std::string, value_t> sicp_compiler_registers() {
 
   env->define_variable(quoted_t{"error"}, error_primitive_proc);
   env->define_variable(quoted_t{"apply"}, apply_primitive_proc);
+  // For internal use by CPS programs only.
+  env->define_variable(quoted_t{"%halt"}, halt_primitive_proc);
 
   env->define_variable(quoted_t{"gensym"}, gensym_primitive_proc);
   env->define_variable(quoted_t{"generate-uninterned-symbol"}, gensym_primitive_proc);
