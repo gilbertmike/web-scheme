@@ -57,6 +57,8 @@ op_t* str_to_op(std::string_view op_str) {
     return set_variable_op;
   } else if (op_str == "define-variable!") {
     return define_variable_op;
+  } else if (op_str == "make-apply-argl") {
+    return make_apply_argl_op;
   }
 
   throw std::runtime_error(
@@ -256,3 +258,21 @@ struct set_variable_op_t : op_t {
 };
 
 op_t* set_variable_op = new set_variable_op_t;
+
+struct make_apply_argl_op_t : op_t {
+  value_t execute(const arg_list_t& args) {
+    assert(args.size() == 1);
+    const value_t& argl = args.at(0).as<pair_t*>()->cdr;
+    if (argl.has<pair_t*>()) {
+      std::vector<value_t> temp;
+      pair_t* cur = argl.as<pair_t*>();
+      for (; cur->cdr.has<pair_t*>(); cur = cur->cdr.as<pair_t*>()) {
+        temp.push_back(cur->car);
+      }
+      return temp.empty() ? cur->car : pair_t::make_improper_list(temp, cur->car);
+    }
+    return unassigned_t();
+  }
+};
+
+op_t* make_apply_argl_op = new make_apply_argl_op_t;

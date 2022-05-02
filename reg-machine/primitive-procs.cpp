@@ -211,6 +211,26 @@ struct error_procedure_t : primitive_procedure_t {
 
 primitive_procedure_t* error_primitive_proc = new error_procedure_t;
 
+/*
+A possibly better implementation as a compiled procedure -- we don't need 
+to lookup compare strings to determine the address of the three registers!
+
+(assign val (op make-compiled-procedure) (label apply-entry) (reg env))
+(perform (op define-variable!) (const apply) (reg val) (reg env))
+(goto (label after-apply))
+apply-entry
+(assign proc (op car) (reg argl))
+(assign argl (op make-apply-argl) (reg argl))
+(test (op primitive-procedure?) (reg proc))
+(branch (label apply-primitive-branch))
+apply-compiled-branch
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+apply-primitive-branch
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+(goto (reg continue))
+after-apply
+*/
 struct apply_procedure_t : primitive_procedure_t {
   value_t execute(const value_t& args) {
     machine_t& current = machine_t::current();

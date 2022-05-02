@@ -398,3 +398,27 @@
    (list-union (registers-modified seq1)
                (registers-modified seq2))
    (append (statements seq1) (statements seq2))))
+
+(define (compile-apply-proc)
+  (if #f
+      '((assign val (op make-compiled-procedure) (label apply-entry) (reg env))
+        (perform (op define-variable!) (const apply) (reg val) (reg env))
+        (goto (label after-apply))
+        apply-entry
+        (assign proc (op car) (reg argl))
+        (assign argl (op make-apply-argl) (reg argl))
+        (test (op primitive-procedure?) (reg proc))
+        (branch (label apply-primitive-branch))
+        apply-compiled-branch
+        (assign val (op compiled-procedure-entry) (reg proc))
+        (goto (reg val))
+        apply-primitive-branch
+        (assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+        (goto (reg continue))
+        after-apply)
+      '()))
+
+(define (compile-program prog)
+  (let ((result (compile prog 'val 'halt)))
+    `(,@(compile-apply-proc)
+      ,@(caddr result))))
