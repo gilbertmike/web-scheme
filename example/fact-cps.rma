@@ -1,0 +1,1906 @@
+(assign val (op lookup-variable-value) (const apply) (reg env))
+(perform (op define-variable!) (const %%apply521) (reg val) (reg env))
+(assign val (const ok))
+(assign val (op lookup-variable-value) (const %halt) (reg env))
+(perform (op define-variable!) (const %%halt522) (reg val) (reg env))
+(assign val (const ok))
+(assign val (op make-compiled-procedure) (label entry908) (reg env))
+(goto (label after-lambda907))
+entry908
+(assign env (op compiled-procedure-env) (reg proc))
+(assign env (op extend-environment) (const (result)) (reg argl) (reg env))
+(assign proc (op lookup-variable-value) (const %%halt522) (reg env))
+(assign val (op lookup-variable-value) (const result) (reg env))
+(assign argl (op list) (reg val))
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch911))
+compiled-branch910
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch911
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+(goto (reg continue))
+after-call909
+after-lambda907
+(perform (op define-variable!) (const %halt) (reg val) (reg env))
+(assign val (const ok))
+(save env)
+(assign proc (op make-compiled-procedure) (label entry895) (reg env))
+(goto (label after-lambda894))
+entry895
+(assign env (op compiled-procedure-env) (reg proc))
+(assign env
+        (op extend-environment)
+        (const (the-primitive))
+        (reg argl)
+        (reg env))
+(assign val (op make-compiled-procedure) (label entry897) (reg env))
+(goto (reg continue))
+entry897
+(assign env (op compiled-procedure-env) (reg proc))
+(assign env
+        (op extend-environment)
+        (const (cont . args))
+        (reg argl)
+        (reg env))
+(assign proc (op lookup-variable-value) (const cont) (reg env))
+(save continue)
+(save proc)
+(assign proc (op lookup-variable-value) (const %%apply521) (reg env))
+(assign val (op lookup-variable-value) (const args) (reg env))
+(assign argl (op list) (reg val))
+(assign val (op lookup-variable-value) (const the-primitive) (reg env))
+(assign argl (op cons) (reg val) (reg argl))
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch900))
+compiled-branch899
+(assign continue (label after-call898))
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch900
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+after-call898
+(assign argl (op list) (reg val))
+(restore proc)
+(restore continue)
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch903))
+compiled-branch902
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch903
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+(goto (reg continue))
+after-call901
+after-lambda896
+after-lambda894
+(assign val (op lookup-variable-value) (const =) (reg env))
+(assign argl (op list) (reg val))
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch906))
+compiled-branch905
+(assign continue (label after-call904))
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch906
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+after-call904
+(restore env)
+(perform (op define-variable!) (const =) (reg val) (reg env))
+(assign val (const ok))
+(save env)
+(assign proc (op make-compiled-procedure) (label entry882) (reg env))
+(goto (label after-lambda881))
+entry882
+(assign env (op compiled-procedure-env) (reg proc))
+(assign env
+        (op extend-environment)
+        (const (the-primitive))
+        (reg argl)
+        (reg env))
+(assign val (op make-compiled-procedure) (label entry884) (reg env))
+(goto (reg continue))
+entry884
+(assign env (op compiled-procedure-env) (reg proc))
+(assign env
+        (op extend-environment)
+        (const (cont . args))
+        (reg argl)
+        (reg env))
+(assign proc (op lookup-variable-value) (const cont) (reg env))
+(save continue)
+(save proc)
+(assign proc (op lookup-variable-value) (const %%apply521) (reg env))
+(assign val (op lookup-variable-value) (const args) (reg env))
+(assign argl (op list) (reg val))
+(assign val (op lookup-variable-value) (const the-primitive) (reg env))
+(assign argl (op cons) (reg val) (reg argl))
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch887))
+compiled-branch886
+(assign continue (label after-call885))
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch887
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+after-call885
+(assign argl (op list) (reg val))
+(restore proc)
+(restore continue)
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch890))
+compiled-branch889
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch890
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+(goto (reg continue))
+after-call888
+after-lambda883
+after-lambda881
+(assign val (op lookup-variable-value) (const eq?) (reg env))
+(assign argl (op list) (reg val))
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch893))
+compiled-branch892
+(assign continue (label after-call891))
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch893
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+after-call891
+(restore env)
+(perform (op define-variable!) (const eq?) (reg val) (reg env))
+(assign val (const ok))
+(save env)
+(assign proc (op make-compiled-procedure) (label entry869) (reg env))
+(goto (label after-lambda868))
+entry869
+(assign env (op compiled-procedure-env) (reg proc))
+(assign env
+        (op extend-environment)
+        (const (the-primitive))
+        (reg argl)
+        (reg env))
+(assign val (op make-compiled-procedure) (label entry871) (reg env))
+(goto (reg continue))
+entry871
+(assign env (op compiled-procedure-env) (reg proc))
+(assign env
+        (op extend-environment)
+        (const (cont . args))
+        (reg argl)
+        (reg env))
+(assign proc (op lookup-variable-value) (const cont) (reg env))
+(save continue)
+(save proc)
+(assign proc (op lookup-variable-value) (const %%apply521) (reg env))
+(assign val (op lookup-variable-value) (const args) (reg env))
+(assign argl (op list) (reg val))
+(assign val (op lookup-variable-value) (const the-primitive) (reg env))
+(assign argl (op cons) (reg val) (reg argl))
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch874))
+compiled-branch873
+(assign continue (label after-call872))
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch874
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+after-call872
+(assign argl (op list) (reg val))
+(restore proc)
+(restore continue)
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch877))
+compiled-branch876
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch877
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+(goto (reg continue))
+after-call875
+after-lambda870
+after-lambda868
+(assign val (op lookup-variable-value) (const eqv?) (reg env))
+(assign argl (op list) (reg val))
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch880))
+compiled-branch879
+(assign continue (label after-call878))
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch880
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+after-call878
+(restore env)
+(perform (op define-variable!) (const eqv?) (reg val) (reg env))
+(assign val (const ok))
+(save env)
+(assign proc (op make-compiled-procedure) (label entry856) (reg env))
+(goto (label after-lambda855))
+entry856
+(assign env (op compiled-procedure-env) (reg proc))
+(assign env
+        (op extend-environment)
+        (const (the-primitive))
+        (reg argl)
+        (reg env))
+(assign val (op make-compiled-procedure) (label entry858) (reg env))
+(goto (reg continue))
+entry858
+(assign env (op compiled-procedure-env) (reg proc))
+(assign env
+        (op extend-environment)
+        (const (cont . args))
+        (reg argl)
+        (reg env))
+(assign proc (op lookup-variable-value) (const cont) (reg env))
+(save continue)
+(save proc)
+(assign proc (op lookup-variable-value) (const %%apply521) (reg env))
+(assign val (op lookup-variable-value) (const args) (reg env))
+(assign argl (op list) (reg val))
+(assign val (op lookup-variable-value) (const the-primitive) (reg env))
+(assign argl (op cons) (reg val) (reg argl))
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch861))
+compiled-branch860
+(assign continue (label after-call859))
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch861
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+after-call859
+(assign argl (op list) (reg val))
+(restore proc)
+(restore continue)
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch864))
+compiled-branch863
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch864
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+(goto (reg continue))
+after-call862
+after-lambda857
+after-lambda855
+(assign val (op lookup-variable-value) (const +) (reg env))
+(assign argl (op list) (reg val))
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch867))
+compiled-branch866
+(assign continue (label after-call865))
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch867
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+after-call865
+(restore env)
+(perform (op define-variable!) (const +) (reg val) (reg env))
+(assign val (const ok))
+(save env)
+(assign proc (op make-compiled-procedure) (label entry843) (reg env))
+(goto (label after-lambda842))
+entry843
+(assign env (op compiled-procedure-env) (reg proc))
+(assign env
+        (op extend-environment)
+        (const (the-primitive))
+        (reg argl)
+        (reg env))
+(assign val (op make-compiled-procedure) (label entry845) (reg env))
+(goto (reg continue))
+entry845
+(assign env (op compiled-procedure-env) (reg proc))
+(assign env
+        (op extend-environment)
+        (const (cont . args))
+        (reg argl)
+        (reg env))
+(assign proc (op lookup-variable-value) (const cont) (reg env))
+(save continue)
+(save proc)
+(assign proc (op lookup-variable-value) (const %%apply521) (reg env))
+(assign val (op lookup-variable-value) (const args) (reg env))
+(assign argl (op list) (reg val))
+(assign val (op lookup-variable-value) (const the-primitive) (reg env))
+(assign argl (op cons) (reg val) (reg argl))
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch848))
+compiled-branch847
+(assign continue (label after-call846))
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch848
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+after-call846
+(assign argl (op list) (reg val))
+(restore proc)
+(restore continue)
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch851))
+compiled-branch850
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch851
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+(goto (reg continue))
+after-call849
+after-lambda844
+after-lambda842
+(assign val (op lookup-variable-value) (const -) (reg env))
+(assign argl (op list) (reg val))
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch854))
+compiled-branch853
+(assign continue (label after-call852))
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch854
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+after-call852
+(restore env)
+(perform (op define-variable!) (const -) (reg val) (reg env))
+(assign val (const ok))
+(save env)
+(assign proc (op make-compiled-procedure) (label entry830) (reg env))
+(goto (label after-lambda829))
+entry830
+(assign env (op compiled-procedure-env) (reg proc))
+(assign env
+        (op extend-environment)
+        (const (the-primitive))
+        (reg argl)
+        (reg env))
+(assign val (op make-compiled-procedure) (label entry832) (reg env))
+(goto (reg continue))
+entry832
+(assign env (op compiled-procedure-env) (reg proc))
+(assign env
+        (op extend-environment)
+        (const (cont . args))
+        (reg argl)
+        (reg env))
+(assign proc (op lookup-variable-value) (const cont) (reg env))
+(save continue)
+(save proc)
+(assign proc (op lookup-variable-value) (const %%apply521) (reg env))
+(assign val (op lookup-variable-value) (const args) (reg env))
+(assign argl (op list) (reg val))
+(assign val (op lookup-variable-value) (const the-primitive) (reg env))
+(assign argl (op cons) (reg val) (reg argl))
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch835))
+compiled-branch834
+(assign continue (label after-call833))
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch835
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+after-call833
+(assign argl (op list) (reg val))
+(restore proc)
+(restore continue)
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch838))
+compiled-branch837
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch838
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+(goto (reg continue))
+after-call836
+after-lambda831
+after-lambda829
+(assign val (op lookup-variable-value) (const *) (reg env))
+(assign argl (op list) (reg val))
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch841))
+compiled-branch840
+(assign continue (label after-call839))
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch841
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+after-call839
+(restore env)
+(perform (op define-variable!) (const *) (reg val) (reg env))
+(assign val (const ok))
+(save env)
+(assign proc (op make-compiled-procedure) (label entry817) (reg env))
+(goto (label after-lambda816))
+entry817
+(assign env (op compiled-procedure-env) (reg proc))
+(assign env
+        (op extend-environment)
+        (const (the-primitive))
+        (reg argl)
+        (reg env))
+(assign val (op make-compiled-procedure) (label entry819) (reg env))
+(goto (reg continue))
+entry819
+(assign env (op compiled-procedure-env) (reg proc))
+(assign env
+        (op extend-environment)
+        (const (cont . args))
+        (reg argl)
+        (reg env))
+(assign proc (op lookup-variable-value) (const cont) (reg env))
+(save continue)
+(save proc)
+(assign proc (op lookup-variable-value) (const %%apply521) (reg env))
+(assign val (op lookup-variable-value) (const args) (reg env))
+(assign argl (op list) (reg val))
+(assign val (op lookup-variable-value) (const the-primitive) (reg env))
+(assign argl (op cons) (reg val) (reg argl))
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch822))
+compiled-branch821
+(assign continue (label after-call820))
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch822
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+after-call820
+(assign argl (op list) (reg val))
+(restore proc)
+(restore continue)
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch825))
+compiled-branch824
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch825
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+(goto (reg continue))
+after-call823
+after-lambda818
+after-lambda816
+(assign val (op lookup-variable-value) (const cons) (reg env))
+(assign argl (op list) (reg val))
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch828))
+compiled-branch827
+(assign continue (label after-call826))
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch828
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+after-call826
+(restore env)
+(perform (op define-variable!) (const cons) (reg val) (reg env))
+(assign val (const ok))
+(save env)
+(assign proc (op make-compiled-procedure) (label entry804) (reg env))
+(goto (label after-lambda803))
+entry804
+(assign env (op compiled-procedure-env) (reg proc))
+(assign env
+        (op extend-environment)
+        (const (the-primitive))
+        (reg argl)
+        (reg env))
+(assign val (op make-compiled-procedure) (label entry806) (reg env))
+(goto (reg continue))
+entry806
+(assign env (op compiled-procedure-env) (reg proc))
+(assign env
+        (op extend-environment)
+        (const (cont . args))
+        (reg argl)
+        (reg env))
+(assign proc (op lookup-variable-value) (const cont) (reg env))
+(save continue)
+(save proc)
+(assign proc (op lookup-variable-value) (const %%apply521) (reg env))
+(assign val (op lookup-variable-value) (const args) (reg env))
+(assign argl (op list) (reg val))
+(assign val (op lookup-variable-value) (const the-primitive) (reg env))
+(assign argl (op cons) (reg val) (reg argl))
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch809))
+compiled-branch808
+(assign continue (label after-call807))
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch809
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+after-call807
+(assign argl (op list) (reg val))
+(restore proc)
+(restore continue)
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch812))
+compiled-branch811
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch812
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+(goto (reg continue))
+after-call810
+after-lambda805
+after-lambda803
+(assign val (op lookup-variable-value) (const cdr) (reg env))
+(assign argl (op list) (reg val))
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch815))
+compiled-branch814
+(assign continue (label after-call813))
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch815
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+after-call813
+(restore env)
+(perform (op define-variable!) (const cdr) (reg val) (reg env))
+(assign val (const ok))
+(save env)
+(assign proc (op make-compiled-procedure) (label entry791) (reg env))
+(goto (label after-lambda790))
+entry791
+(assign env (op compiled-procedure-env) (reg proc))
+(assign env
+        (op extend-environment)
+        (const (the-primitive))
+        (reg argl)
+        (reg env))
+(assign val (op make-compiled-procedure) (label entry793) (reg env))
+(goto (reg continue))
+entry793
+(assign env (op compiled-procedure-env) (reg proc))
+(assign env
+        (op extend-environment)
+        (const (cont . args))
+        (reg argl)
+        (reg env))
+(assign proc (op lookup-variable-value) (const cont) (reg env))
+(save continue)
+(save proc)
+(assign proc (op lookup-variable-value) (const %%apply521) (reg env))
+(assign val (op lookup-variable-value) (const args) (reg env))
+(assign argl (op list) (reg val))
+(assign val (op lookup-variable-value) (const the-primitive) (reg env))
+(assign argl (op cons) (reg val) (reg argl))
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch796))
+compiled-branch795
+(assign continue (label after-call794))
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch796
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+after-call794
+(assign argl (op list) (reg val))
+(restore proc)
+(restore continue)
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch799))
+compiled-branch798
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch799
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+(goto (reg continue))
+after-call797
+after-lambda792
+after-lambda790
+(assign val (op lookup-variable-value) (const car) (reg env))
+(assign argl (op list) (reg val))
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch802))
+compiled-branch801
+(assign continue (label after-call800))
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch802
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+after-call800
+(restore env)
+(perform (op define-variable!) (const car) (reg val) (reg env))
+(assign val (const ok))
+(save env)
+(assign proc (op make-compiled-procedure) (label entry778) (reg env))
+(goto (label after-lambda777))
+entry778
+(assign env (op compiled-procedure-env) (reg proc))
+(assign env
+        (op extend-environment)
+        (const (the-primitive))
+        (reg argl)
+        (reg env))
+(assign val (op make-compiled-procedure) (label entry780) (reg env))
+(goto (reg continue))
+entry780
+(assign env (op compiled-procedure-env) (reg proc))
+(assign env
+        (op extend-environment)
+        (const (cont . args))
+        (reg argl)
+        (reg env))
+(assign proc (op lookup-variable-value) (const cont) (reg env))
+(save continue)
+(save proc)
+(assign proc (op lookup-variable-value) (const %%apply521) (reg env))
+(assign val (op lookup-variable-value) (const args) (reg env))
+(assign argl (op list) (reg val))
+(assign val (op lookup-variable-value) (const the-primitive) (reg env))
+(assign argl (op cons) (reg val) (reg argl))
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch783))
+compiled-branch782
+(assign continue (label after-call781))
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch783
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+after-call781
+(assign argl (op list) (reg val))
+(restore proc)
+(restore continue)
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch786))
+compiled-branch785
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch786
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+(goto (reg continue))
+after-call784
+after-lambda779
+after-lambda777
+(assign val (op lookup-variable-value) (const not) (reg env))
+(assign argl (op list) (reg val))
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch789))
+compiled-branch788
+(assign continue (label after-call787))
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch789
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+after-call787
+(restore env)
+(perform (op define-variable!) (const not) (reg val) (reg env))
+(assign val (const ok))
+(save env)
+(assign proc (op make-compiled-procedure) (label entry765) (reg env))
+(goto (label after-lambda764))
+entry765
+(assign env (op compiled-procedure-env) (reg proc))
+(assign env
+        (op extend-environment)
+        (const (the-primitive))
+        (reg argl)
+        (reg env))
+(assign val (op make-compiled-procedure) (label entry767) (reg env))
+(goto (reg continue))
+entry767
+(assign env (op compiled-procedure-env) (reg proc))
+(assign env
+        (op extend-environment)
+        (const (cont . args))
+        (reg argl)
+        (reg env))
+(assign proc (op lookup-variable-value) (const cont) (reg env))
+(save continue)
+(save proc)
+(assign proc (op lookup-variable-value) (const %%apply521) (reg env))
+(assign val (op lookup-variable-value) (const args) (reg env))
+(assign argl (op list) (reg val))
+(assign val (op lookup-variable-value) (const the-primitive) (reg env))
+(assign argl (op cons) (reg val) (reg argl))
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch770))
+compiled-branch769
+(assign continue (label after-call768))
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch770
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+after-call768
+(assign argl (op list) (reg val))
+(restore proc)
+(restore continue)
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch773))
+compiled-branch772
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch773
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+(goto (reg continue))
+after-call771
+after-lambda766
+after-lambda764
+(assign val (op lookup-variable-value) (const number?) (reg env))
+(assign argl (op list) (reg val))
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch776))
+compiled-branch775
+(assign continue (label after-call774))
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch776
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+after-call774
+(restore env)
+(perform (op define-variable!) (const number?) (reg val) (reg env))
+(assign val (const ok))
+(save env)
+(assign proc (op make-compiled-procedure) (label entry752) (reg env))
+(goto (label after-lambda751))
+entry752
+(assign env (op compiled-procedure-env) (reg proc))
+(assign env
+        (op extend-environment)
+        (const (the-primitive))
+        (reg argl)
+        (reg env))
+(assign val (op make-compiled-procedure) (label entry754) (reg env))
+(goto (reg continue))
+entry754
+(assign env (op compiled-procedure-env) (reg proc))
+(assign env
+        (op extend-environment)
+        (const (cont . args))
+        (reg argl)
+        (reg env))
+(assign proc (op lookup-variable-value) (const cont) (reg env))
+(save continue)
+(save proc)
+(assign proc (op lookup-variable-value) (const %%apply521) (reg env))
+(assign val (op lookup-variable-value) (const args) (reg env))
+(assign argl (op list) (reg val))
+(assign val (op lookup-variable-value) (const the-primitive) (reg env))
+(assign argl (op cons) (reg val) (reg argl))
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch757))
+compiled-branch756
+(assign continue (label after-call755))
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch757
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+after-call755
+(assign argl (op list) (reg val))
+(restore proc)
+(restore continue)
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch760))
+compiled-branch759
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch760
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+(goto (reg continue))
+after-call758
+after-lambda753
+after-lambda751
+(assign val (op lookup-variable-value) (const pair?) (reg env))
+(assign argl (op list) (reg val))
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch763))
+compiled-branch762
+(assign continue (label after-call761))
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch763
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+after-call761
+(restore env)
+(perform (op define-variable!) (const pair?) (reg val) (reg env))
+(assign val (const ok))
+(save env)
+(assign proc (op make-compiled-procedure) (label entry739) (reg env))
+(goto (label after-lambda738))
+entry739
+(assign env (op compiled-procedure-env) (reg proc))
+(assign env
+        (op extend-environment)
+        (const (the-primitive))
+        (reg argl)
+        (reg env))
+(assign val (op make-compiled-procedure) (label entry741) (reg env))
+(goto (reg continue))
+entry741
+(assign env (op compiled-procedure-env) (reg proc))
+(assign env
+        (op extend-environment)
+        (const (cont . args))
+        (reg argl)
+        (reg env))
+(assign proc (op lookup-variable-value) (const cont) (reg env))
+(save continue)
+(save proc)
+(assign proc (op lookup-variable-value) (const %%apply521) (reg env))
+(assign val (op lookup-variable-value) (const args) (reg env))
+(assign argl (op list) (reg val))
+(assign val (op lookup-variable-value) (const the-primitive) (reg env))
+(assign argl (op cons) (reg val) (reg argl))
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch744))
+compiled-branch743
+(assign continue (label after-call742))
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch744
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+after-call742
+(assign argl (op list) (reg val))
+(restore proc)
+(restore continue)
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch747))
+compiled-branch746
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch747
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+(goto (reg continue))
+after-call745
+after-lambda740
+after-lambda738
+(assign val (op lookup-variable-value) (const symbol?) (reg env))
+(assign argl (op list) (reg val))
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch750))
+compiled-branch749
+(assign continue (label after-call748))
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch750
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+after-call748
+(restore env)
+(perform (op define-variable!) (const symbol?) (reg val) (reg env))
+(assign val (const ok))
+(save env)
+(assign proc (op make-compiled-procedure) (label entry726) (reg env))
+(goto (label after-lambda725))
+entry726
+(assign env (op compiled-procedure-env) (reg proc))
+(assign env
+        (op extend-environment)
+        (const (the-primitive))
+        (reg argl)
+        (reg env))
+(assign val (op make-compiled-procedure) (label entry728) (reg env))
+(goto (reg continue))
+entry728
+(assign env (op compiled-procedure-env) (reg proc))
+(assign env
+        (op extend-environment)
+        (const (cont . args))
+        (reg argl)
+        (reg env))
+(assign proc (op lookup-variable-value) (const cont) (reg env))
+(save continue)
+(save proc)
+(assign proc (op lookup-variable-value) (const %%apply521) (reg env))
+(assign val (op lookup-variable-value) (const args) (reg env))
+(assign argl (op list) (reg val))
+(assign val (op lookup-variable-value) (const the-primitive) (reg env))
+(assign argl (op cons) (reg val) (reg argl))
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch731))
+compiled-branch730
+(assign continue (label after-call729))
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch731
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+after-call729
+(assign argl (op list) (reg val))
+(restore proc)
+(restore continue)
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch734))
+compiled-branch733
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch734
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+(goto (reg continue))
+after-call732
+after-lambda727
+after-lambda725
+(assign val (op lookup-variable-value) (const boolean?) (reg env))
+(assign argl (op list) (reg val))
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch737))
+compiled-branch736
+(assign continue (label after-call735))
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch737
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+after-call735
+(restore env)
+(perform (op define-variable!) (const boolean?) (reg val) (reg env))
+(assign val (const ok))
+(save env)
+(assign proc (op make-compiled-procedure) (label entry713) (reg env))
+(goto (label after-lambda712))
+entry713
+(assign env (op compiled-procedure-env) (reg proc))
+(assign env
+        (op extend-environment)
+        (const (the-primitive))
+        (reg argl)
+        (reg env))
+(assign val (op make-compiled-procedure) (label entry715) (reg env))
+(goto (reg continue))
+entry715
+(assign env (op compiled-procedure-env) (reg proc))
+(assign env
+        (op extend-environment)
+        (const (cont . args))
+        (reg argl)
+        (reg env))
+(assign proc (op lookup-variable-value) (const cont) (reg env))
+(save continue)
+(save proc)
+(assign proc (op lookup-variable-value) (const %%apply521) (reg env))
+(assign val (op lookup-variable-value) (const args) (reg env))
+(assign argl (op list) (reg val))
+(assign val (op lookup-variable-value) (const the-primitive) (reg env))
+(assign argl (op cons) (reg val) (reg argl))
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch718))
+compiled-branch717
+(assign continue (label after-call716))
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch718
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+after-call716
+(assign argl (op list) (reg val))
+(restore proc)
+(restore continue)
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch721))
+compiled-branch720
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch721
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+(goto (reg continue))
+after-call719
+after-lambda714
+after-lambda712
+(assign val (op lookup-variable-value) (const string?) (reg env))
+(assign argl (op list) (reg val))
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch724))
+compiled-branch723
+(assign continue (label after-call722))
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch724
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+after-call722
+(restore env)
+(perform (op define-variable!) (const string?) (reg val) (reg env))
+(assign val (const ok))
+(save env)
+(assign proc (op make-compiled-procedure) (label entry700) (reg env))
+(goto (label after-lambda699))
+entry700
+(assign env (op compiled-procedure-env) (reg proc))
+(assign env
+        (op extend-environment)
+        (const (the-primitive))
+        (reg argl)
+        (reg env))
+(assign val (op make-compiled-procedure) (label entry702) (reg env))
+(goto (reg continue))
+entry702
+(assign env (op compiled-procedure-env) (reg proc))
+(assign env
+        (op extend-environment)
+        (const (cont . args))
+        (reg argl)
+        (reg env))
+(assign proc (op lookup-variable-value) (const cont) (reg env))
+(save continue)
+(save proc)
+(assign proc (op lookup-variable-value) (const %%apply521) (reg env))
+(assign val (op lookup-variable-value) (const args) (reg env))
+(assign argl (op list) (reg val))
+(assign val (op lookup-variable-value) (const the-primitive) (reg env))
+(assign argl (op cons) (reg val) (reg argl))
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch705))
+compiled-branch704
+(assign continue (label after-call703))
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch705
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+after-call703
+(assign argl (op list) (reg val))
+(restore proc)
+(restore continue)
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch708))
+compiled-branch707
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch708
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+(goto (reg continue))
+after-call706
+after-lambda701
+after-lambda699
+(assign val (op lookup-variable-value) (const null?) (reg env))
+(assign argl (op list) (reg val))
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch711))
+compiled-branch710
+(assign continue (label after-call709))
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch711
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+after-call709
+(restore env)
+(perform (op define-variable!) (const null?) (reg val) (reg env))
+(assign val (const ok))
+(save env)
+(assign proc (op make-compiled-procedure) (label entry687) (reg env))
+(goto (label after-lambda686))
+entry687
+(assign env (op compiled-procedure-env) (reg proc))
+(assign env
+        (op extend-environment)
+        (const (the-primitive))
+        (reg argl)
+        (reg env))
+(assign val (op make-compiled-procedure) (label entry689) (reg env))
+(goto (reg continue))
+entry689
+(assign env (op compiled-procedure-env) (reg proc))
+(assign env
+        (op extend-environment)
+        (const (cont . args))
+        (reg argl)
+        (reg env))
+(assign proc (op lookup-variable-value) (const cont) (reg env))
+(save continue)
+(save proc)
+(assign proc (op lookup-variable-value) (const %%apply521) (reg env))
+(assign val (op lookup-variable-value) (const args) (reg env))
+(assign argl (op list) (reg val))
+(assign val (op lookup-variable-value) (const the-primitive) (reg env))
+(assign argl (op cons) (reg val) (reg argl))
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch692))
+compiled-branch691
+(assign continue (label after-call690))
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch692
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+after-call690
+(assign argl (op list) (reg val))
+(restore proc)
+(restore continue)
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch695))
+compiled-branch694
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch695
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+(goto (reg continue))
+after-call693
+after-lambda688
+after-lambda686
+(assign val (op lookup-variable-value) (const error) (reg env))
+(assign argl (op list) (reg val))
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch698))
+compiled-branch697
+(assign continue (label after-call696))
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch698
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+after-call696
+(restore env)
+(perform (op define-variable!) (const error) (reg val) (reg env))
+(assign val (const ok))
+(save env)
+(assign proc (op make-compiled-procedure) (label entry674) (reg env))
+(goto (label after-lambda673))
+entry674
+(assign env (op compiled-procedure-env) (reg proc))
+(assign env
+        (op extend-environment)
+        (const (the-primitive))
+        (reg argl)
+        (reg env))
+(assign val (op make-compiled-procedure) (label entry676) (reg env))
+(goto (reg continue))
+entry676
+(assign env (op compiled-procedure-env) (reg proc))
+(assign env
+        (op extend-environment)
+        (const (cont . args))
+        (reg argl)
+        (reg env))
+(assign proc (op lookup-variable-value) (const cont) (reg env))
+(save continue)
+(save proc)
+(assign proc (op lookup-variable-value) (const %%apply521) (reg env))
+(assign val (op lookup-variable-value) (const args) (reg env))
+(assign argl (op list) (reg val))
+(assign val (op lookup-variable-value) (const the-primitive) (reg env))
+(assign argl (op cons) (reg val) (reg argl))
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch679))
+compiled-branch678
+(assign continue (label after-call677))
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch679
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+after-call677
+(assign argl (op list) (reg val))
+(restore proc)
+(restore continue)
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch682))
+compiled-branch681
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch682
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+(goto (reg continue))
+after-call680
+after-lambda675
+after-lambda673
+(assign val (op lookup-variable-value) (const apply) (reg env))
+(assign argl (op list) (reg val))
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch685))
+compiled-branch684
+(assign continue (label after-call683))
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch685
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+after-call683
+(restore env)
+(perform (op define-variable!) (const apply) (reg val) (reg env))
+(assign val (const ok))
+(save env)
+(assign proc (op make-compiled-procedure) (label entry661) (reg env))
+(goto (label after-lambda660))
+entry661
+(assign env (op compiled-procedure-env) (reg proc))
+(assign env
+        (op extend-environment)
+        (const (the-primitive))
+        (reg argl)
+        (reg env))
+(assign val (op make-compiled-procedure) (label entry663) (reg env))
+(goto (reg continue))
+entry663
+(assign env (op compiled-procedure-env) (reg proc))
+(assign env
+        (op extend-environment)
+        (const (cont . args))
+        (reg argl)
+        (reg env))
+(assign proc (op lookup-variable-value) (const cont) (reg env))
+(save continue)
+(save proc)
+(assign proc (op lookup-variable-value) (const %%apply521) (reg env))
+(assign val (op lookup-variable-value) (const args) (reg env))
+(assign argl (op list) (reg val))
+(assign val (op lookup-variable-value) (const the-primitive) (reg env))
+(assign argl (op cons) (reg val) (reg argl))
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch666))
+compiled-branch665
+(assign continue (label after-call664))
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch666
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+after-call664
+(assign argl (op list) (reg val))
+(restore proc)
+(restore continue)
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch669))
+compiled-branch668
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch669
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+(goto (reg continue))
+after-call667
+after-lambda662
+after-lambda660
+(assign val (op lookup-variable-value) (const gensym) (reg env))
+(assign argl (op list) (reg val))
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch672))
+compiled-branch671
+(assign continue (label after-call670))
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch672
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+after-call670
+(restore env)
+(perform (op define-variable!) (const gensym) (reg val) (reg env))
+(assign val (const ok))
+(save env)
+(assign proc (op make-compiled-procedure) (label entry648) (reg env))
+(goto (label after-lambda647))
+entry648
+(assign env (op compiled-procedure-env) (reg proc))
+(assign env
+        (op extend-environment)
+        (const (the-primitive))
+        (reg argl)
+        (reg env))
+(assign val (op make-compiled-procedure) (label entry650) (reg env))
+(goto (reg continue))
+entry650
+(assign env (op compiled-procedure-env) (reg proc))
+(assign env
+        (op extend-environment)
+        (const (cont . args))
+        (reg argl)
+        (reg env))
+(assign proc (op lookup-variable-value) (const cont) (reg env))
+(save continue)
+(save proc)
+(assign proc (op lookup-variable-value) (const %%apply521) (reg env))
+(assign val (op lookup-variable-value) (const args) (reg env))
+(assign argl (op list) (reg val))
+(assign val (op lookup-variable-value) (const the-primitive) (reg env))
+(assign argl (op cons) (reg val) (reg argl))
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch653))
+compiled-branch652
+(assign continue (label after-call651))
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch653
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+after-call651
+(assign argl (op list) (reg val))
+(restore proc)
+(restore continue)
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch656))
+compiled-branch655
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch656
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+(goto (reg continue))
+after-call654
+after-lambda649
+after-lambda647
+(assign val
+        (op lookup-variable-value)
+        (const generate-uninterned-symbol)
+        (reg env))
+(assign argl (op list) (reg val))
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch659))
+compiled-branch658
+(assign continue (label after-call657))
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch659
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+after-call657
+(restore env)
+(perform (op define-variable!)
+         (const generate-uninterned-symbol)
+         (reg val)
+         (reg env))
+(assign val (const ok))
+(save env)
+(assign proc (op make-compiled-procedure) (label entry635) (reg env))
+(goto (label after-lambda634))
+entry635
+(assign env (op compiled-procedure-env) (reg proc))
+(assign env
+        (op extend-environment)
+        (const (the-primitive))
+        (reg argl)
+        (reg env))
+(assign val (op make-compiled-procedure) (label entry637) (reg env))
+(goto (reg continue))
+entry637
+(assign env (op compiled-procedure-env) (reg proc))
+(assign env
+        (op extend-environment)
+        (const (cont . args))
+        (reg argl)
+        (reg env))
+(assign proc (op lookup-variable-value) (const cont) (reg env))
+(save continue)
+(save proc)
+(assign proc (op lookup-variable-value) (const %%apply521) (reg env))
+(assign val (op lookup-variable-value) (const args) (reg env))
+(assign argl (op list) (reg val))
+(assign val (op lookup-variable-value) (const the-primitive) (reg env))
+(assign argl (op cons) (reg val) (reg argl))
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch640))
+compiled-branch639
+(assign continue (label after-call638))
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch640
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+after-call638
+(assign argl (op list) (reg val))
+(restore proc)
+(restore continue)
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch643))
+compiled-branch642
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch643
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+(goto (reg continue))
+after-call641
+after-lambda636
+after-lambda634
+(assign val (op lookup-variable-value) (const input) (reg env))
+(assign argl (op list) (reg val))
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch646))
+compiled-branch645
+(assign continue (label after-call644))
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch646
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+after-call644
+(restore env)
+(perform (op define-variable!) (const input) (reg val) (reg env))
+(assign val (const ok))
+(save env)
+(assign proc (op make-compiled-procedure) (label entry622) (reg env))
+(goto (label after-lambda621))
+entry622
+(assign env (op compiled-procedure-env) (reg proc))
+(assign env
+        (op extend-environment)
+        (const (the-primitive))
+        (reg argl)
+        (reg env))
+(assign val (op make-compiled-procedure) (label entry624) (reg env))
+(goto (reg continue))
+entry624
+(assign env (op compiled-procedure-env) (reg proc))
+(assign env
+        (op extend-environment)
+        (const (cont . args))
+        (reg argl)
+        (reg env))
+(assign proc (op lookup-variable-value) (const cont) (reg env))
+(save continue)
+(save proc)
+(assign proc (op lookup-variable-value) (const %%apply521) (reg env))
+(assign val (op lookup-variable-value) (const args) (reg env))
+(assign argl (op list) (reg val))
+(assign val (op lookup-variable-value) (const the-primitive) (reg env))
+(assign argl (op cons) (reg val) (reg argl))
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch627))
+compiled-branch626
+(assign continue (label after-call625))
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch627
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+after-call625
+(assign argl (op list) (reg val))
+(restore proc)
+(restore continue)
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch630))
+compiled-branch629
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch630
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+(goto (reg continue))
+after-call628
+after-lambda623
+after-lambda621
+(assign val (op lookup-variable-value) (const display) (reg env))
+(assign argl (op list) (reg val))
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch633))
+compiled-branch632
+(assign continue (label after-call631))
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch633
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+after-call631
+(restore env)
+(perform (op define-variable!) (const display) (reg val) (reg env))
+(assign val (const ok))
+(save env)
+(assign proc (op make-compiled-procedure) (label entry609) (reg env))
+(goto (label after-lambda608))
+entry609
+(assign env (op compiled-procedure-env) (reg proc))
+(assign env
+        (op extend-environment)
+        (const (the-primitive))
+        (reg argl)
+        (reg env))
+(assign val (op make-compiled-procedure) (label entry611) (reg env))
+(goto (reg continue))
+entry611
+(assign env (op compiled-procedure-env) (reg proc))
+(assign env
+        (op extend-environment)
+        (const (cont . args))
+        (reg argl)
+        (reg env))
+(assign proc (op lookup-variable-value) (const cont) (reg env))
+(save continue)
+(save proc)
+(assign proc (op lookup-variable-value) (const %%apply521) (reg env))
+(assign val (op lookup-variable-value) (const args) (reg env))
+(assign argl (op list) (reg val))
+(assign val (op lookup-variable-value) (const the-primitive) (reg env))
+(assign argl (op cons) (reg val) (reg argl))
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch614))
+compiled-branch613
+(assign continue (label after-call612))
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch614
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+after-call612
+(assign argl (op list) (reg val))
+(restore proc)
+(restore continue)
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch617))
+compiled-branch616
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch617
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+(goto (reg continue))
+after-call615
+after-lambda610
+after-lambda608
+(assign val (op lookup-variable-value) (const write-line) (reg env))
+(assign argl (op list) (reg val))
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch620))
+compiled-branch619
+(assign continue (label after-call618))
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch620
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+after-call618
+(restore env)
+(perform (op define-variable!) (const write-line) (reg val) (reg env))
+(assign val (const ok))
+(save env)
+(assign proc (op make-compiled-procedure) (label entry596) (reg env))
+(goto (label after-lambda595))
+entry596
+(assign env (op compiled-procedure-env) (reg proc))
+(assign env
+        (op extend-environment)
+        (const (the-primitive))
+        (reg argl)
+        (reg env))
+(assign val (op make-compiled-procedure) (label entry598) (reg env))
+(goto (reg continue))
+entry598
+(assign env (op compiled-procedure-env) (reg proc))
+(assign env
+        (op extend-environment)
+        (const (cont . args))
+        (reg argl)
+        (reg env))
+(assign proc (op lookup-variable-value) (const cont) (reg env))
+(save continue)
+(save proc)
+(assign proc (op lookup-variable-value) (const %%apply521) (reg env))
+(assign val (op lookup-variable-value) (const args) (reg env))
+(assign argl (op list) (reg val))
+(assign val (op lookup-variable-value) (const the-primitive) (reg env))
+(assign argl (op cons) (reg val) (reg argl))
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch601))
+compiled-branch600
+(assign continue (label after-call599))
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch601
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+after-call599
+(assign argl (op list) (reg val))
+(restore proc)
+(restore continue)
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch604))
+compiled-branch603
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch604
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+(goto (reg continue))
+after-call602
+after-lambda597
+after-lambda595
+(assign val (op lookup-variable-value) (const pp) (reg env))
+(assign argl (op list) (reg val))
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch607))
+compiled-branch606
+(assign continue (label after-call605))
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch607
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+after-call605
+(restore env)
+(perform (op define-variable!) (const pp) (reg val) (reg env))
+(assign val (const ok))
+(save env)
+(assign proc (op make-compiled-procedure) (label entry583) (reg env))
+(goto (label after-lambda582))
+entry583
+(assign env (op compiled-procedure-env) (reg proc))
+(assign env
+        (op extend-environment)
+        (const (the-primitive))
+        (reg argl)
+        (reg env))
+(assign val (op make-compiled-procedure) (label entry585) (reg env))
+(goto (reg continue))
+entry585
+(assign env (op compiled-procedure-env) (reg proc))
+(assign env
+        (op extend-environment)
+        (const (cont . args))
+        (reg argl)
+        (reg env))
+(assign proc (op lookup-variable-value) (const cont) (reg env))
+(save continue)
+(save proc)
+(assign proc (op lookup-variable-value) (const %%apply521) (reg env))
+(assign val (op lookup-variable-value) (const args) (reg env))
+(assign argl (op list) (reg val))
+(assign val (op lookup-variable-value) (const the-primitive) (reg env))
+(assign argl (op cons) (reg val) (reg argl))
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch588))
+compiled-branch587
+(assign continue (label after-call586))
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch588
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+after-call586
+(assign argl (op list) (reg val))
+(restore proc)
+(restore continue)
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch591))
+compiled-branch590
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch591
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+(goto (reg continue))
+after-call589
+after-lambda584
+after-lambda582
+(assign val (op lookup-variable-value) (const print) (reg env))
+(assign argl (op list) (reg val))
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch594))
+compiled-branch593
+(assign continue (label after-call592))
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch594
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+after-call592
+(restore env)
+(perform (op define-variable!) (const print) (reg val) (reg env))
+(assign val (const ok))
+(assign val (op make-compiled-procedure) (label entry573) (reg env))
+(goto (label after-lambda572))
+entry573
+(assign env (op compiled-procedure-env) (reg proc))
+(assign env (op extend-environment) (const (k f)) (reg argl) (reg env))
+(assign proc (op lookup-variable-value) (const f) (reg env))
+(assign val (op make-compiled-procedure) (label entry575) (reg env))
+(goto (label after-lambda574))
+entry575
+(assign env (op compiled-procedure-env) (reg proc))
+(assign env
+        (op extend-environment)
+        (const (dummy-k result))
+        (reg argl)
+        (reg env))
+(assign proc (op lookup-variable-value) (const k) (reg env))
+(assign val (op lookup-variable-value) (const result) (reg env))
+(assign argl (op list) (reg val))
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch578))
+compiled-branch577
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch578
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+(goto (reg continue))
+after-call576
+after-lambda574
+(assign argl (op list) (reg val))
+(assign val (op lookup-variable-value) (const k) (reg env))
+(assign argl (op cons) (reg val) (reg argl))
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch581))
+compiled-branch580
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch581
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+(goto (reg continue))
+after-call579
+after-lambda572
+(perform (op define-variable!)
+         (const call-with-current-continuation)
+         (reg val)
+         (reg env))
+(assign val (const ok))
+(assign val
+        (op lookup-variable-value)
+        (const call-with-current-continuation)
+        (reg env))
+(perform (op define-variable!) (const call/cc) (reg val) (reg env))
+(assign val (const ok))
+(assign proc (op make-compiled-procedure) (label entry524) (reg env))
+(goto (label after-lambda523))
+entry524
+(assign env (op compiled-procedure-env) (reg proc))
+(assign env (op extend-environment) (const (fact512)) (reg argl) (reg env))
+(assign proc (op make-compiled-procedure) (label entry552) (reg env))
+(goto (label after-lambda551))
+entry552
+(assign env (op compiled-procedure-env) (reg proc))
+(assign env
+        (op extend-environment)
+        (const (cps-result-set516))
+        (reg argl)
+        (reg env))
+(assign proc (op make-compiled-procedure) (label entry554) (reg env))
+(goto (label after-lambda553))
+entry554
+(assign env (op compiled-procedure-env) (reg proc))
+(assign env
+        (op extend-environment)
+        (const (cps-result-begin514))
+        (reg argl)
+        (reg env))
+(assign proc (op lookup-variable-value) (const input) (reg env))
+(assign val (op make-compiled-procedure) (label entry556) (reg env))
+(goto (label after-lambda555))
+entry556
+(assign env (op compiled-procedure-env) (reg proc))
+(assign env
+        (op extend-environment)
+        (const (cps-result-operand515))
+        (reg argl)
+        (reg env))
+(assign proc (op lookup-variable-value) (const fact512) (reg env))
+(assign val
+        (op lookup-variable-value)
+        (const cps-result-operand515)
+        (reg env))
+(assign argl (op list) (reg val))
+(assign val (op lookup-variable-value) (const %halt) (reg env))
+(assign argl (op cons) (reg val) (reg argl))
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch559))
+compiled-branch558
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch559
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+(goto (reg continue))
+after-call557
+after-lambda555
+(assign argl (op list) (reg val))
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch562))
+compiled-branch561
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch562
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+(goto (reg continue))
+after-call560
+after-lambda553
+(assign val (op lookup-variable-value) (const cps-result-set516) (reg env))
+(perform (op set-variable-value!) (const fact512) (reg val) (reg env))
+(assign val (const ok))
+(assign argl (op list) (reg val))
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch565))
+compiled-branch564
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch565
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+(goto (reg continue))
+after-call563
+after-lambda551
+(assign val (op make-compiled-procedure) (label entry526) (reg env))
+(goto (label after-lambda525))
+entry526
+(assign env (op compiled-procedure-env) (reg proc))
+(assign env
+        (op extend-environment)
+        (const (cont517 n513))
+        (reg argl)
+        (reg env))
+(assign proc (op lookup-variable-value) (const =) (reg env))
+(assign val (const 0))
+(assign argl (op list) (reg val))
+(assign val (op lookup-variable-value) (const n513) (reg env))
+(assign argl (op cons) (reg val) (reg argl))
+(assign val (op make-compiled-procedure) (label entry528) (reg env))
+(goto (label after-lambda527))
+entry528
+(assign env (op compiled-procedure-env) (reg proc))
+(assign env
+        (op extend-environment)
+        (const (cps-result-if520))
+        (reg argl)
+        (reg env))
+(assign val (op lookup-variable-value) (const cps-result-if520) (reg env))
+(test (op false?) (reg val))
+(branch (label false-branch530))
+true-branch531
+(assign proc (op lookup-variable-value) (const cont517) (reg env))
+(assign val (const 1))
+(assign argl (op list) (reg val))
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch547))
+compiled-branch546
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch547
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+(goto (reg continue))
+after-call545
+false-branch530
+(assign proc (op lookup-variable-value) (const -) (reg env))
+(assign val (const 1))
+(assign argl (op list) (reg val))
+(assign val (op lookup-variable-value) (const n513) (reg env))
+(assign argl (op cons) (reg val) (reg argl))
+(assign val (op make-compiled-procedure) (label entry533) (reg env))
+(goto (label after-lambda532))
+entry533
+(assign env (op compiled-procedure-env) (reg proc))
+(assign env
+        (op extend-environment)
+        (const (cps-result-operand519))
+        (reg argl)
+        (reg env))
+(assign proc (op lookup-variable-value) (const fact512) (reg env))
+(assign val
+        (op lookup-variable-value)
+        (const cps-result-operand519)
+        (reg env))
+(assign argl (op list) (reg val))
+(assign val (op make-compiled-procedure) (label entry535) (reg env))
+(goto (label after-lambda534))
+entry535
+(assign env (op compiled-procedure-env) (reg proc))
+(assign env
+        (op extend-environment)
+        (const (cps-result-operand518))
+        (reg argl)
+        (reg env))
+(assign proc (op lookup-variable-value) (const *) (reg env))
+(assign val
+        (op lookup-variable-value)
+        (const cps-result-operand518)
+        (reg env))
+(assign argl (op list) (reg val))
+(assign val (op lookup-variable-value) (const n513) (reg env))
+(assign argl (op cons) (reg val) (reg argl))
+(assign val (op lookup-variable-value) (const cont517) (reg env))
+(assign argl (op cons) (reg val) (reg argl))
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch538))
+compiled-branch537
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch538
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+(goto (reg continue))
+after-call536
+after-lambda534
+(assign argl (op cons) (reg val) (reg argl))
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch541))
+compiled-branch540
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch541
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+(goto (reg continue))
+after-call539
+after-lambda532
+(assign argl (op cons) (reg val) (reg argl))
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch544))
+compiled-branch543
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch544
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+(goto (reg continue))
+after-call542
+after-if529
+after-lambda527
+(assign argl (op cons) (reg val) (reg argl))
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch550))
+compiled-branch549
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch550
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+(goto (reg continue))
+after-call548
+after-lambda525
+(assign argl (op list) (reg val))
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch568))
+compiled-branch567
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch568
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+(goto (reg continue))
+after-call566
+after-lambda523
+(assign val (const #f))
+(assign argl (op list) (reg val))
+(test (op primitive-procedure?) (reg proc))
+(branch (label primitive-branch571))
+compiled-branch570
+(assign continue (label halt))
+(assign val (op compiled-procedure-entry) (reg proc))
+(goto (reg val))
+primitive-branch571
+(assign val (op apply-primitive-procedure) (reg proc) (reg argl))
+(goto (label halt))
+after-call569

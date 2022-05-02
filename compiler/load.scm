@@ -31,6 +31,32 @@
 
 #|
 (compile-to-file
+ "example/cps-generator.rma"
+ '(begin
+    (define (for-each f lst)
+      (if (null? lst) 'ok (begin (f (car lst)) (for-each f (cdr lst)))))
+    (define (generate-one-element-at-a-time lst)
+      (define (control-state return)
+        (for-each
+         (lambda (element)
+           (set! return (call/cc
+                         (lambda (resume-here)
+                           (set! control-state resume-here)
+                           (return element)))))
+         lst)
+        (return 'you-fell-off-the-end))
+      (define (generator)
+        (call/cc control-state))
+      generator)
+    (define generate-digit
+      (generate-one-element-at-a-time '(0 1 2)))
+    (pp (generate-digit))
+    (pp (generate-digit))
+    (pp (generate-digit))
+    (pp (generate-digit)))
+ #t)
+
+(compile-to-file
  "example/apply-test.scm"
  '(begin
     (pp (apply + '(1 2 3)))
