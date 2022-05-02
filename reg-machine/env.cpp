@@ -19,8 +19,7 @@ env_t::env_t() : mapping(), parent(nullptr) {}
 env_t* env_t::extend_environment(const value_t& names, const value_t& values) {
   env_t* extended_env = new env_t;
   extended_env->parent = this;
-  if (values.has<unassigned_t>()) {
-    assert(names.has<unassigned_t>());
+  if (values.has<unassigned_t>() && names.has<unassigned_t>()) {
     return extended_env;
   }
   if (!names.has<pair_t*>()) [[unlikely]] {
@@ -28,6 +27,7 @@ env_t* env_t::extend_environment(const value_t& names, const value_t& values) {
     extended_env->define_variable(names.as<quoted_t>(), values);
   } else {
     pair_t* rest_names = names.as<pair_t*>();
+    assert(values.has<pair_t*>());
     pair_t* rest_values = values.as<pair_t*>();
     while (true) {
       extended_env->define_variable(rest_names->car.as<quoted_t>(),
